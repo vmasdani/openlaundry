@@ -1,0 +1,127 @@
+{
+  "project_info": {
+    "project_number": "67053471779",
+    "firebase_url": "https://test-dbdd7.firebaseio.com",
+    "project_id": "test-dbdd7",
+    "storage_bucket": "test-dbdd7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67053471779:android:cee5428a5255e728",
+        "android_client_info": {
+          "package_name": "com.example.iot_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQ9XZXfMENIlnM4p6MFsax79eth5bLmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67053471779:android:95871ba287dc6597214996",
+        "android_client_info": {
+          "package_name": "com.example.openlaundry"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQ9XZXfMENIlnM4p6MFsax79eth5bLmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67053471779:android:b23b89d0c73bc6b8214996",
+        "android_client_info": {
+          "package_name": "com.fcmtest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQ9XZXfMENIlnM4p6MFsax79eth5bLmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67053471779:android:5bd368b0b4b9c095214996",
+        "android_client_info": {
+          "package_name": "com.meeting"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQ9XZXfMENIlnM4p6MFsax79eth5bLmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
