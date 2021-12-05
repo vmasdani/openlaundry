@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:openlaundry/CalculatorPage.dart';
 import 'package:openlaundry/app_state.dart';
 import 'package:openlaundry/backup_page.dart';
 import 'package:openlaundry/customers_page.dart';
@@ -19,102 +20,90 @@ class MainComponent extends StatefulWidget {
 class _MainComponentState extends State<MainComponent> {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-                decoration: BoxDecoration(color: Colors.purple),
-                child: Text(
-                  'OpenLaundry Mobile App',
-                  style: TextStyle(color: Colors.white),
-                )),
-            Consumer<AppState>(
-              builder: (ctx, state, child) {
-                return ListTile(
-                  title: TextButton(
-                      onPressed: () {
-                        state.setTitle('Dashboard');
-                        state.setSelectedPage(0);
-                        Navigator.pop(context);
-                      },
-                      child: Row(
-                        children: [Icon(Icons.dashboard), Text('Dashboard')],
-                      )),
-                );
-              },
+    return Consumer<AppState>(builder: (ctx, state, child) {
+      return Scaffold(
+        appBar: AppBar(title: Text(state.title ?? '')),
+        body: Center(
+          child: Consumer<AppState>(
+            builder: (ctx, state, child) {
+              switch (state.selectedPage) {
+                case 0:
+                  {
+                    return DashboardPage();
+                  }
+
+                case 1:
+                  {
+                    return CustomersPage();
+                  }
+
+                case 3:
+                  {
+                    return BackupPage();
+                  }
+
+                case 2:
+                  {
+                    return CalculatorPage();
+                  }
+
+                default:
+                  return Container();
+              }
+            },
+          ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
             ),
-            Consumer<AppState>(
-              builder: (ctx, state, child) {
-                return ListTile(
-                  title: TextButton(
-                      onPressed: () {
-                        state.setTitle('Customers');
-                        state.setSelectedPage(1);
-                        Navigator.pop(context);
-                      },
-                      child: Row(
-                        children: [Icon(Icons.group), Text('Customers')],
-                      )),
-                );
-              },
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Customers',
             ),
-            Consumer<AppState>(
-              builder: (ctx, state, child) {
-                return ListTile(
-                  title: TextButton(
-                      onPressed: () {
-                        state.setTitle('Backup');
-                        state.setSelectedPage(2);
-                        Navigator.pop(context);
-                      },
-                      child: Row(
-                        children: [Icon(Icons.backup), Text('Backup')],
-                      )),
-                );
-              },
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calculate),
+              label: 'Calculator',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.backup),
+              label: 'Backup',
             ),
           ],
+          currentIndex: state.selectedPage,
+          selectedItemColor: Colors.purple,
+          onTap: (v) async {
+            switch (v) {
+              case 0:
+                state.setSelectedPage(0);
+                state.setTitle('Home');
+                return;
+
+              case 1:
+                state.setSelectedPage(1);
+                state.setTitle('Customers');
+                return;
+
+              case 2:
+                state.setSelectedPage(2);
+                state.setTitle('Calculator');
+                return;
+
+              case 3:
+                state.setSelectedPage(3);
+                state.setTitle('Backup');
+                return;
+
+              default:
+                print('Nothing selected');
+                return;
+            }
+          },
         ),
-      ),
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Consumer<AppState>(builder: (ctx, state, child) {
-          return Text(state.title ?? '');
-        }),
-      ),
-      body: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: Consumer<AppState>(builder: (ctx, state, child) {
-        switch (state.selectedPage) {
-          case 0:
-            {
-              return DashboardPage();
-            }
-
-          case 1:
-            {
-              return CustomersPage();
-            }
-
-          case 2:
-            {
-              return BackupPage();
-            }
-
-          default:
-            return Container();
-        }
-      })),
-    );
+      );
+    });
   }
 }

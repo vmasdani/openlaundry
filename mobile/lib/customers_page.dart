@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:openlaundry/app_state.dart';
+import 'package:openlaundry/constants.dart';
+import 'package:openlaundry/customer_edit_page.dart';
 import 'package:openlaundry/customers_add_page.dart';
 import 'package:openlaundry/model.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class CustomersPage extends StatefulWidget {
   @override
@@ -12,20 +16,24 @@ class CustomersPage extends StatefulWidget {
 }
 
 class _CustomersPageState extends State<CustomersPage> {
-  final _customerSearch = TextEditingController();
+  var _customerSearch = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => CustomersAddPage(
-                        customer: Customer(),
-                      )));
+        onPressed: () async {
+          final c = Customer()
+            ..uuid = Uuid().v4()
+            ..createdAt = DateTime.now().millisecondsSinceEpoch
+            ..updatedAt = DateTime.now().millisecondsSinceEpoch;
+
+          (await Hive.openBox<Customer>(customersHiveTable)).add(c);
+
+          await c.save();
+
+          setState(() {});
         },
       ),
       body: Container(
@@ -34,120 +42,149 @@ class _CustomersPageState extends State<CustomersPage> {
           children: [
             Container(
               margin: EdgeInsets.only(top: 10),
-              child: TextField(
-                controller: _customerSearch,
-                onChanged: (v) {
-                  setState(() {});
-                },
-                decoration: InputDecoration(
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                    hintText: 'Search by name, phone, address'),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: TextEditingController()
+                        ..text = _customerSearch,
+                      onChanged: (v) {
+                        _customerSearch = v;
+                      },
+                      decoration: InputDecoration(
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                        hintText: 'Search by name, phone, address',
+                      ),
+                    ),
+                  ),
+                  Container(
+                    child: IconButton(
+                      onPressed: () async {
+                        setState(() {});
+                      },
+                      icon: Icon(
+                        Icons.search,
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
             Divider(),
             Consumer<AppState>(builder: (ctx, state, child) {
               return Container(
-                margin: EdgeInsets.only(top: 10),
-                child: Column(
-                  children: List<Customer>.from(
-                          state.customers?.reversed ?? Iterable.empty())
-                      .where((customer) =>
-                          '${customer.name}${customer.phone}${customer.address}'
-                              .toLowerCase()
-                              .contains(_customerSearch.text.toLowerCase()) &&
-                          customer.deletedAt == null)
-                      .map((customer) {
-                    final totalLaundries = state.laundryRecords
-                            ?.where((laundryRecord) =>
-                                laundryRecord.customerUuid == customer.uuid &&
-                                laundryRecord.deletedAt == null)
-                            .length ??
-                        0;
-
-                    return Column(
-                      children: [
-                        GestureDetector(
-                          onLongPress: () {
-                            showDialog(
-                                context: context,
-                                builder: (_) => AlertDialog(
-                                      title: Text(
-                                          'Delete customer ${customer.name}?'),
-                                      actions: [
-                                        Consumer<AppState>(
-                                          builder: (ctx, state, child) {
-                                            return TextButton(
-                                              child: Text('Yes'),
+                child: FutureBuilder(
+                  future: Hive.openBox<Customer>(customersHiveTable),
+                  builder: (ctx, AsyncSnapshot<Box<Customer>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return Container(
+                        child: Column(
+                          children: snapshot.data?.values
+                                  .toList()
+                                  .reversed
+                                  ?.where(
+                                    (c) =>
+                                        '${c?.name}${c?.address}${c?.phone}'
+                                            .toLowerCase()
+                                            ?.contains(
+                                              _customerSearch?.toLowerCase() ??
+                                                  '',
+                                            ) ??
+                                        false,
+                                  )
+                                  .map(
+                                (c) {
+                                  return Container(
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                children: [
+                                                  // Container(
+                                                  //   child: Text(
+                                                  //     c?.uuid ?? 'No uuid',
+                                                  //   ),
+                                                  // ),
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      c?.name != null &&
+                                                              c?.name != ''
+                                                          ? (c?.name ?? '')
+                                                          : 'No name',
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      c?.address != null &&
+                                                              c?.address != ''
+                                                          ? (c?.address ?? '')
+                                                          : 'No address',
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      c?.phone != null &&
+                                                              c?.phone != ''
+                                                          ? (c?.phone ?? '')
+                                                          : 'No phone',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            IconButton(
                                               onPressed: () async {
-                                                await state.delete<Customer>(
-                                                    customer.uuid);
-                                                Navigator.pop(context);
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        CustomerEditPage(
+                                                      uuid: c?.uuid,
+                                                      onSave: () {
+                                                        setState(() {});
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
                                               },
-                                            );
-                                          },
+                                              icon: Icon(
+                                                Icons.edit,
+                                              ),
+                                              color: Colors.green,
+                                            )
+                                          ],
+                                        ),
+                                        Container(
+                                          child: Divider(
+                                            color: Colors.grey,
+                                          ),
                                         )
                                       ],
-                                    ));
-                          },
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => CustomersAddPage(
-                                          customer: customer,
-                                        )));
-                          },
-                          child: Container(
-                            child: Card(
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                width: double.infinity,
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        customer.name ?? 'No Name',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
                                     ),
-                                    Divider(),
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                          customer.phone ?? 'No Phone Number'),
-                                    ),
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                          customer.address ?? 'No Address'),
-                                    ),
-                                    Divider(),
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        'Total laundries: ${totalLaundries}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: totalLaundries % 10 == 0 &&
-                                                    totalLaundries != 0
-                                                ? Colors.green
-                                                : Colors.grey),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                                  );
+                                },
+                              ).toList() ??
+                              [],
                         ),
-                        Divider()
-                      ],
-                    );
-                  }).toList(),
+                      );
+                    } else {
+                      return Container();
+                    }
+                  },
                 ),
               );
             })

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'package:openlaundry/app_state.dart';
 import 'package:openlaundry/google_sign_in_class.dart';
 import 'package:openlaundry/main_component.dart';
@@ -9,6 +12,11 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: '.env');
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(LaundryRecordAdapter());
+  Hive.registerAdapter(CustomerAdapter());
+  Hive.registerAdapter(ExpenseAdapter());
 
   runApp(ChangeNotifierProvider(
     create: (context) => AppState(),
@@ -41,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     final state = context.read<AppState>();
 
-    state.initState();
+    // state.initState();
     super.initState();
   }
 

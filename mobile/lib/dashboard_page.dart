@@ -2,12 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive/hive.dart';
+import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:openlaundry/app_state.dart';
+import 'package:openlaundry/constants.dart';
 import 'package:openlaundry/document_editor.dart';
+import 'package:openlaundry/generic_selector.dart';
 import 'package:openlaundry/helpers.dart';
+import 'package:openlaundry/laundry_record_editor.dart';
 import 'package:openlaundry/model.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -15,24 +21,43 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final _laundryDocumentSearchController = TextEditingController();
-  var _filterDate = true;
-  var _filterDateFrom = DateTime(
-      DateTime.now().year, DateTime.now().month, DateTime.now().day - 7);
-  var _filterDateTo =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  var _from = DateTime.parse(
+    '${DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day - 7).toLocal().toIso8601String().split('T')[0]}T00:00:00Z',
+  ).millisecondsSinceEpoch;
+
+  var _to = DateTime.parse(
+    '${DateTime.now().toLocal().toIso8601String().split('T')[0]}T00:00:00Z',
+  ).millisecondsSinceEpoch;
+
+  String? _filterCustomerUuid;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _init();
+  }
+
+  Future<void> _init() async {}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => DocumentEditor(
-                        laundryDocument: LaundryDocument(),
-                      )));
+        onPressed: () async {
+          final l = LaundryRecord()
+            ..uuid = Uuid().v4()
+            ..createdAt = DateTime.now().millisecondsSinceEpoch
+            ..updatedAt = DateTime.now().millisecondsSinceEpoch
+            ..date = DateTime.parse(
+              '${DateTime.now().toLocal().toIso8601String().split('T')[0]}T00:00:00Z',
+            ).millisecondsSinceEpoch;
+
+          (await Hive.openBox<LaundryRecord>(laundryRecordsHiveTable)).add(l);
+
+          await l.save();
+
+          setState(() {});
         },
         tooltip: 'Increment',
         child: Icon(Icons.add),
@@ -40,453 +65,410 @@ class _DashboardPageState extends State<DashboardPage> {
       body: Container(
         margin: EdgeInsets.only(left: 10, right: 10),
         child: RefreshIndicator(
-            onRefresh: () async {},
-            child: ListView(
-              physics: AlwaysScrollableScrollPhysics(),
-              children: [
-                // Container(
-                //   child: TextButton(
-                //     child: Text('Save'),
-                //     onPressed: () {
-                //       final state = context.read<AppState>();
-                //       final testCustomer =
-                //           Customer(name: 'Valian', address: 'Kota sutera');
+          onRefresh: () async {
+            setState(() {});
+          },
+          child: ListView(
+            physics: AlwaysScrollableScrollPhysics(),
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: MaterialButton(
+                      onPressed: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(DateTime.now().year - 100),
+                          lastDate: DateTime(DateTime.now().year + 100),
+                        );
 
-                //       state.saveGeneric(testCustomer);
-                //       // state.saveGeneric(testSaveNoFactory);
-                //     },
-                //   ),
-                // ),
-
-                Container(
-                  margin: EdgeInsets.only(top: 10),
-                  child: Consumer<AppState>(builder: (ctx, state, child) {
-                    return Text(
-                      'Documents (${state.laundryDocuments?.where((laundryDocument) => (laundryDocument.date ?? 0) >= _filterDateFrom.millisecondsSinceEpoch && (laundryDocument.date ?? 0) <= _filterDateTo.millisecondsSinceEpoch && laundryDocument.deletedAt == null)?.length ?? 0} records)',
-                      style: TextStyle(fontSize: 18),
-                    );
-                  }),
-                ),
-                // Consumer<AppState>(builder: (ctx, state, child) {
-                //   return Container(
-                //     child: Text('${state.lastId}'),
-                //   );
-                // }),
-                Container(
-                  margin: EdgeInsets.only(top: 10),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Search: ',
-                        style: TextStyle(),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Search Document',
-                            isDense: true,
-                          ),
-                          controller: _laundryDocumentSearchController,
+                        if (date != null) {
+                          setState(() {
+                            _from = DateTime.parse('${date}Z')
+                                .millisecondsSinceEpoch;
+                          });
+                        }
+                      },
+                      child: Text(
+                        _from != null
+                            ? DateFormat.yMMMEd().format(
+                                DateTime.fromMillisecondsSinceEpoch(_from)
+                                    .toLocal(),
+                              )
+                            : 'From',
+                        style: TextStyle(
+                          color: Colors.purple,
                         ),
                       ),
-                      IconButton(
-                          icon: Icon(Icons.search),
-                          onPressed: () {
-                            setState(() {});
-                          })
-                    ],
+                    ),
                   ),
-                ),
-                // Container(
-                //   child: Row(
-                //     children: [
-                //       Expanded(
-                //         child: Container(
-                //           child: Text('Filter Date'),
-                //         ),
-                //       ),
-                //       Expanded(
-                //         child: Container(
-                //           alignment: Alignment.centerRight,
-                //           child: Switch(
-                //             onChanged: (val) {
-                //               setState(() {
-                //                 _filterDate = val;
-                //               });
-                //             },
-                //             value: _filterDate,
-                //           ),
-                //         ),
-                //       )
-                //     ],
-                //   ),
-                // ),
-                ...(_filterDate
-                    ? [
-                        Container(
-                          child: Column(
-                            children: [
-                              Container(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text('From'),
-                                    ),
-                                    Expanded(
-                                      child: Container(
-                                        alignment: Alignment.centerRight,
-                                        child: TextButton(
-                                            onPressed: () async {
-                                              final date = await showDatePicker(
-                                                context: context,
-                                                firstDate: DateTime(
-                                                    DateTime.now().year - 10),
-                                                lastDate: DateTime(
-                                                    DateTime.now().year + 10),
-                                                initialDate: DateTime(
-                                                    DateTime.now().year,
-                                                    DateTime.now().month,
-                                                    DateTime.now().day),
-                                              );
+                  Container(
+                    child: Text('to'),
+                  ),
+                  Expanded(
+                    child: MaterialButton(
+                      onPressed: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(DateTime.now().year - 100),
+                          lastDate: DateTime(DateTime.now().year + 100),
+                        );
 
-                                              if (date != null) {
-                                                setState(() {
-                                                  _filterDateFrom = date;
-                                                });
-                                              }
-                                            },
-                                            child: Text(makeReadableDateString(
-                                                _filterDateFrom))),
+                        if (date != null) {
+                          setState(() {
+                            _to = DateTime.parse('${date}Z')
+                                .millisecondsSinceEpoch;
+                          });
+                        }
+                      },
+                      child: Text(
+                        _to != null
+                            ? DateFormat.yMMMEd().format(
+                                DateTime.fromMillisecondsSinceEpoch(_to)
+                                    .toLocal(),
+                              )
+                            : 'To',
+                        style: TextStyle(
+                          color: Colors.purple,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Filter by Customer',
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final customers =
+                            (await Hive.openBox<Customer>(customersHiveTable))
+                                .values;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GenericSelector<Customer>(
+                              title: 'Select Customer',
+                              list: customers,
+                              getLabel: (c) => '${c?.name} (${c?.address})',
+                              onSelect: (c) {
+                                setState(() {
+                                  _filterCustomerUuid = c?.uuid;
+                                });
+                              },
+                              searchCriteria: (c, search) =>
+                                  '${c?.name ?? ''}${c?.address ?? ''}'
+                                      .toLowerCase()
+                                      .contains(
+                                        search?.toLowerCase() ?? '',
                                       ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text('To'),
-                                    ),
-                                    Expanded(
-                                      child: Container(
-                                        alignment: Alignment.centerRight,
-                                        child: TextButton(
-                                            onPressed: () async {
-                                              final date = await showDatePicker(
-                                                context: context,
-                                                firstDate: DateTime(
-                                                    DateTime.now().year - 10),
-                                                lastDate: DateTime(
-                                                    DateTime.now().year + 10),
-                                                initialDate: DateTime(
-                                                    DateTime.now().year,
-                                                    DateTime.now().month,
-                                                    DateTime.now().day),
-                                              );
-
-                                              if (date != null) {
-                                                setState(() {
-                                                  _filterDateTo = date;
-                                                });
-                                              }
-                                            },
-                                            child: Text(makeReadableDateString(
-                                                _filterDateTo))),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        Consumer<AppState>(
-                          builder: (ctx, state, child) {
-                            final foundLaundryRecords = state.laundryDocuments
-                                    ?.where((laundryDocument) =>
-                                        (laundryDocument.date ?? 0) >=
-                                            _filterDateFrom
-                                                .millisecondsSinceEpoch &&
-                                        (laundryDocument.date ?? 0) <=
-                                            _filterDateTo
-                                                .millisecondsSinceEpoch &&
-                                        laundryDocument.deletedAt == null)
-                                    .map((laundryDocument) {
-                                      final foundLaundryRecords = state
-                                              .laundryRecords
-                                              ?.where((laundryRecord) =>
-                                                  laundryRecord
-                                                          .laundryDocumentUuid ==
-                                                      laundryDocument.uuid &&
-                                                  laundryRecord.deletedAt ==
-                                                      null) ??
-                                          [];
-
-                                      return foundLaundryRecords;
-                                    })
-                                    .expand((element) => element)
-                                    .toList() ??
-                                [];
-
-                            final unresolvedLaundries = foundLaundryRecords
-                                .where((laundryRecord) =>
-                                    laundryRecord.received == null &&
-                                    laundryRecord.deletedAt == null)
-                                .length;
-
-                            final income = foundLaundryRecords
-                                .where((laundryRecord) =>
-                                    laundryRecord.received != null &&
-                                    laundryRecord.deletedAt == null)
-                                .fold(
-                                    0,
-                                    (acc, laundryRecord) =>
-                                        ((acc ?? 0) as int) +
-                                        (laundryRecord.price ?? 0));
-
-                            return Column(
-                              children: [
-                                Container(
-                                  child: Text(
-                                    'Total laundries: ${foundLaundryRecords.length}',
-                                  ),
+                        );
+                      },
+                      child: (_filterCustomerUuid != null
+                          ? FutureBuilder(
+                              future:
+                                  Hive.openBox<Customer>(customersHiveTable),
+                              builder:
+                                  (ctx, AsyncSnapshot<Box<Customer>> snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.done) {
+                                  final c =
+                                      snapshot.data?.values?.firstWhereOrNull(
+                                    (c) => c?.uuid == _filterCustomerUuid,
+                                  );
+                                  return Text(
+                                    '${c?.name ?? 'No name'} (${c?.address ?? 'No address'})',
+                                  );
+                                } else {
+                                  return Text('Loading...');
+                                }
+                              })
+                          : Text('Select Customer')),
+                    ),
+                    ...(_filterCustomerUuid != null
+                        ? [
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _filterCustomerUuid = null;
+                                });
+                              },
+                              child: Text(
+                                'Clear',
+                                style: TextStyle(
+                                  color: Colors.red,
                                 ),
-                                Container(
-                                  child: Text(
-                                    'Unresolved laundries: $unresolvedLaundries',
-                                    style: TextStyle(
-                                        color: unresolvedLaundries > 0
-                                            ? Colors.red
-                                            : Colors.green),
-                                  ),
-                                ),
-                                Container(
-                                  child: Text(
-                                    'Total Income:',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                Container(
-                                  child: Text(
-                                    NumberFormat.simpleCurrency(locale: 'id-ID')
-                                        .format(income),
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                )
-                              ],
-                            );
-                          },
-                        ),
-                      ]
-                    : []),
-
-                Container(
-                  margin: EdgeInsets.only(top: 5, bottom: 5),
-                  child: Divider(),
+                              ),
+                            )
+                          ]
+                        : [])
+                  ],
                 ),
-                // Consumer<AppState>(
-                //   builder: (ctx, state, child) {
-                //     return Container(
-                //       margin: EdgeInsets.all(10),
-                //       child: Text(jsonEncode(state.customers)),
-                //     );
-                //   },
-                // ),
-                // Divider(),
-                // Consumer<AppState>(
-                //   builder: (ctx, state, child) {
-                //     return Container(
-                //       margin: EdgeInsets.all(10),
-                //       child: Text(jsonEncode(state.laundryDocuments)),
-                //     );
-                //   },
-                // ),
-                // Divider(),
-                // Consumer<AppState>(
-                //   builder: (ctx, state, child) {
-                //     return Container(
-                //       margin: EdgeInsets.all(10),
-                //       child: Text(jsonEncode(state.laundryRecords)),
-                //     );
-                //   },
-                // ),
-                // Divider(),
-                Consumer<AppState>(
-                  builder: (ctx, state, child) {
-                    return Column(
-                      children: List<LaundryDocument>.from(
-                              state.laundryDocuments?.reversed ??
-                                  Iterable.empty())
-                          .where((laundryDocument) =>
-
-                              // Filter by name
-                              (laundryDocument.name?.toLowerCase().contains(
-                                      _laundryDocumentSearchController.text
-                                          .toLowerCase()) ??
-                                  false) &&
-                              (laundryDocument.date ?? 0) >=
-                                  _filterDateFrom.millisecondsSinceEpoch &&
-                              (laundryDocument.date ?? 0) <=
-                                  _filterDateTo.millisecondsSinceEpoch &&
-                              // Filter by deletedAt
-                              laundryDocument.deletedAt == null)
-                          .toList()
-                          .asMap()
-                          .map((i, laundryDocument) => MapEntry(
-                              i,
-                              GestureDetector(
-                                onLongPress: () {
-                                  showDialog(
-                                      context: context,
-                                      builder: (_) => AlertDialog(
-                                            title: Text(
-                                                'Delete ${laundryDocument.name}?'),
-                                            actions: [
-                                              Consumer<AppState>(
-                                                  builder: (ctx, state, child) {
-                                                return TextButton(
-                                                  child: Text('Yes'),
-                                                  onPressed: () async {
-                                                    if (laundryDocument.uuid !=
-                                                        null) {
-                                                      await state.delete<
-                                                              LaundryDocument>(
-                                                          laundryDocument.uuid);
-                                                    }
-
-                                                    Navigator.pop(context);
-                                                  },
-                                                );
-                                              })
-                                            ],
-                                          ));
-                                },
-                                onTap: () {
-                                  Navigator.push(
+              ),
+              Divider(
+                color: Colors.grey,
+              ),
+              (FutureBuilder(
+                future: Hive.openBox<LaundryRecord>(laundryRecordsHiveTable),
+                builder: (ctx, AsyncSnapshot<Box<LaundryRecord>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return Column(children: [
+                      Container(
+                        child: Row(
+                          children: [
+                            Expanded(
+                                child: Container(
+                              child: Text(
+                                'Showing ${snapshot.data?.values?.length} records',
+                              ),
+                            ))
+                          ],
+                        ),
+                      ),
+                      ...((snapshot.data)
+                              ?.values
+                              .where(
+                                (l) =>
+                                    (l.date ?? 0) >= _from &&
+                                    (l.date ?? 0) <= _to &&
+                                    (_filterCustomerUuid != null
+                                        ? l?.customerUuid == _filterCustomerUuid
+                                        : true),
+                              )
+                              .toList()
+                              .reversed
+                              .mapIndexed(
+                                (i, l) => GestureDetector(
+                                  onTap: () async {
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (_) => DocumentEditor(
-                                                laundryDocument:
-                                                    laundryDocument,
-                                              )));
-                                },
-                                child: Column(children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.black12,
-                                              offset: Offset(3, 3),
-                                              blurRadius: 5,
-                                              spreadRadius: 5)
-                                        ]),
-                                    padding: EdgeInsets.all(10),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            '${i + 1}. ${laundryDocument.name ?? 'No name'}',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        Consumer<AppState>(
-                                          builder: (ctx, state, child) {
-                                            final income = state.laundryRecords
-                                                ?.where((laundryRecord) =>
-                                                    laundryRecord
-                                                            .laundryDocumentUuid ==
-                                                        laundryDocument.uuid &&
-                                                    laundryRecord.deletedAt ==
-                                                        null &&
-                                                    laundryRecord.received !=
-                                                        null)
-                                                .map((laundryRecord) =>
-                                                    laundryRecord.price ?? 0)
-                                                .fold(
-                                                    0,
-                                                    (acc, laundryRecordPrice) =>
-                                                        (acc as int) +
-                                                        laundryRecordPrice);
-
-                                            return Container(
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                'Total income: ${NumberFormat.simpleCurrency(locale: 'id-ID').format(income ?? 0)}',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.green),
-                                              ),
-                                            );
+                                        builder: (_) => LaundryRecordEditor(
+                                          uuid: l.uuid,
+                                          onSave: () {
+                                            setState(() {});
                                           },
                                         ),
-                                        // Container(
-                                        //     child: Text(
-                                        //         '${laundryDocument.deletedAt}')),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(10),
+                                    margin: EdgeInsets.only(
+                                      top: 10,
+                                      bottom: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        boxShadow: [
+                                          BoxShadow(
+                                            blurRadius: 5,
+                                            // spreadRadius: 5,
+                                            offset: Offset(5, 5),
+                                            color: Colors.black26,
+                                          )
+                                        ]),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    child: Text('${i + 1}. '),
+                                                  ),
+                                                  Container(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      l.date != null
+                                                          ? DateFormat.yMMMEd()
+                                                              // .add_jms()
+                                                              .format(
+                                                              DateTime
+                                                                  .fromMillisecondsSinceEpoch(
+                                                                l.date!,
+                                                              ).toUtc(),
+                                                            )
+                                                          : 'No date',
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Container(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: FutureBuilder(
+                                                  future:
+                                                      (Hive.openBox<Customer>(
+                                                          customersHiveTable)),
+                                                  builder: (ctx,
+                                                      AsyncSnapshot<
+                                                              Box<Customer>>
+                                                          customers) {
+                                                    return customers
+                                                                .connectionState ==
+                                                            ConnectionState.done
+                                                        ? (() {
+                                                            final c = (customers
+                                                                    .data)
+                                                                ?.values
+                                                                .firstWhereOrNull(
+                                                                  (c) =>
+                                                                      c.uuid ==
+                                                                      l.customerUuid,
+                                                                );
+                                                            return Container(
+                                                              child: Column(
+                                                                children: [
+                                                                  Container(
+                                                                    child: Text(
+                                                                      c?.name ??
+                                                                          'No customer',
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  Container(
+                                                                    child: Text(
+                                                                      c?.address ??
+                                                                          'No address',
+                                                                      style:
+                                                                          TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                ],
+                                                              ),
+                                                            );
+                                                          })()
+                                                        : Text(
+                                                            'Loading customer...',
+                                                          );
+                                                  },
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
                                         Divider(),
                                         Container(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                              'Date: ${makeReadableDateString(DateTime.fromMillisecondsSinceEpoch(laundryDocument.date ?? 0))}'),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Container(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                    '${l?.weight ?? 0.0} kg : ${NumberFormat.decimalPattern().format(
+                                                      l.price ?? 0,
+                                                    )}',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Container(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                    l?.isPaid == 1
+                                                        ? 'Paid ${NumberFormat.decimalPattern().format(
+                                                            l?.paidValue ?? 0,
+                                                          )}'
+                                                        : 'Unpaid',
+                                                    style: TextStyle(
+                                                      color: l?.isPaid == 1
+                                                          ? Colors.green
+                                                          : Colors.red,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        (() {
-                                          final foundLaundryRecords = state
-                                              .laundryRecords
-                                              ?.where((laundryRecord) =>
-                                                  laundryRecord
-                                                          .laundryDocumentUuid ==
-                                                      laundryDocument.uuid &&
-                                                  laundryRecord.deletedAt ==
-                                                      null);
-
-                                          final successfulLaundries =
-                                              foundLaundryRecords
-                                                      ?.where((laundryRecord) =>
-                                                          laundryRecord
-                                                                  .received !=
-                                                              null &&
-                                                          laundryRecord
-                                                                  .deletedAt ==
-                                                              null)
-                                                      .length ??
-                                                  0;
-
-                                          return Container(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              '$successfulLaundries/${foundLaundryRecords?.length ?? 0} laundries done',
-                                              style: TextStyle(
-                                                  color: (successfulLaundries) <
-                                                          (foundLaundryRecords
-                                                                  ?.length ??
-                                                              0)
-                                                      ? Colors.red
-                                                      : Colors.green,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          );
-                                        })(),
+                                        Divider(),
+                                        Container(
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Container(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text('Note'),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Container(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  child: Text(
+                                                    l?.note != null &&
+                                                            l?.note != ""
+                                                        ? l?.note ?? ''
+                                                        : 'No note',
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Divider(),
+                                        Divider(
+                                          color: Colors.grey,
+                                        ),
+                                        Container(
+                                          child: Text(
+                                            'Created ${l.createdAt != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.createdAt!)) : ''}, Updated ${l.updatedAt != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.updatedAt!)) : ''}',
+                                            style: TextStyle(fontSize: 11),
+                                          ),
+                                        )
                                       ],
                                     ),
                                   ),
-                                  Container(
-                                    child: Divider(),
-                                  )
-                                ]),
-                              )))
-                          .values
-                          .toList(),
-                    );
-                  },
-                )
-              ],
-            )),
+                                ),
+                              )
+                              .toList() ??
+                          [])
+                    ]);
+                  } else {
+                    return Container(
+                        child: Center(
+                      child: CircularProgressIndicator(),
+                    ));
+                  }
+                },
+              ))
+            ],
+          ),
+        ),
       ),
     );
   }

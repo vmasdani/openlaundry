@@ -54,7 +54,7 @@ TableDetail? decodeTableStr<T>() {
 
 class AppState with ChangeNotifier {
   int selectedPage = 0;
-  String? title = 'Dashboard';
+  String? title = 'Home';
 
   // TABLES
   List<Customer>? customers;
