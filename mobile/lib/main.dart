@@ -17,6 +17,7 @@ Future<void> main() async {
   Hive.registerAdapter(LaundryRecordAdapter());
   Hive.registerAdapter(CustomerAdapter());
   Hive.registerAdapter(ExpenseAdapter());
+  Hive.registerAdapter(LaundryRecordDetailAdapter());
 
   runApp(ChangeNotifierProvider(
     create: (context) => AppState(),

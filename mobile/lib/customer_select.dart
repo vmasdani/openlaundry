@@ -41,53 +41,53 @@ class _CustomerSelectState extends State<CustomerSelect> {
                 ),
               ),
               Divider(),
-              ...List<Customer>.from(
-                      state.customers?.reversed ?? Iterable.empty())
-                  .where((customer) =>
-                      '${customer.name}${customer.phone}${customer.address}'
-                          .toLowerCase()
-                          .contains(_customerSearch.text.toLowerCase()) &&
-                      customer.deletedAt == null)
-                  .map((customer) {
-                return Column(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (widget.onSelect != null) {
-                          widget.onSelect!(customer);
-                        }
+              // ...List<Customer>.from(
+              //         state.customers?.reversed ?? Iterable.empty())
+              //     .where((customer) =>
+              //         '${customer.name}${customer.phone}${customer.address}'
+              //             .toLowerCase()
+              //             .contains(_customerSearch.text.toLowerCase()) &&
+              //         customer.deleted == null)
+              //     .map((customer) {
+              //   return Column(
+              //     children: [
+              //       GestureDetector(
+              //         onTap: () {
+              //           if (widget.onSelect != null) {
+              //             widget.onSelect!(customer);
+              //           }
 
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        child: Card(
-                          child: Container(
-                            color: Colors.grey[100],
-                            padding: EdgeInsets.all(10),
-                            child: Column(
-                              children: [
-                                Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(customer.name ?? 'No Name'),
-                                ),
-                                Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(customer.phone ?? 'No Phone'),
-                                ),
-                                Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(customer.address ?? 'No Address'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Divider()
-                  ],
-                );
-              }).toList()
+              //           Navigator.pop(context);
+              //         },
+              //         child: Container(
+              //           child: Card(
+              //             child: Container(
+              //               color: Colors.grey[100],
+              //               padding: EdgeInsets.all(10),
+              //               child: Column(
+              //                 children: [
+              //                   Container(
+              //                     alignment: Alignment.centerLeft,
+              //                     child: Text(customer.name ?? 'No Name'),
+              //                   ),
+              //                   Container(
+              //                     alignment: Alignment.centerLeft,
+              //                     child: Text(customer.phone ?? 'No Phone'),
+              //                   ),
+              //                   Container(
+              //                     alignment: Alignment.centerLeft,
+              //                     child: Text(customer.address ?? 'No Address'),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //       Divider()
+              //     ],
+              //   );
+              // }).toList()
             ],
           ),
         );

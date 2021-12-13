@@ -26,8 +26,8 @@ class _CustomersPageState extends State<CustomersPage> {
         onPressed: () async {
           final c = Customer()
             ..uuid = Uuid().v4()
-            ..createdAt = DateTime.now().millisecondsSinceEpoch
-            ..updatedAt = DateTime.now().millisecondsSinceEpoch;
+            ..created = DateTime.now().millisecondsSinceEpoch
+            ..updated = DateTime.now().millisecondsSinceEpoch;
 
           (await Hive.openBox<Customer>(customersHiveTable)).add(c);
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +8,7 @@ import 'package:openlaundry/generic_selector.dart';
 import 'package:openlaundry/model.dart';
 import 'package:collection/collection.dart';
 import 'package:openlaundry/print_receipt_page.dart';
+import 'package:uuid/uuid.dart';
 
 class LaundryRecordEditor extends StatefulWidget {
   const LaundryRecordEditor({
@@ -52,8 +55,21 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
         actions: [
           TextButton(
             onPressed: () async {
-              _laundryRecord?.updatedAt = DateTime.now().millisecondsSinceEpoch;
+              _laundryRecord?.updated = DateTime.now().millisecondsSinceEpoch;
               await _laundryRecord?.save();
+
+              //save details
+              (await Hive.openBox<LaundryRecordDetail>(
+                      laundryRecordDetailsHiveTable))
+                  .values
+                  .where(
+                    (lD) => lD.laundryRecordUuid == _laundryRecord?.uuid,
+                  )
+                  .forEach(
+                (lD) async {
+                  await lD.save();
+                },
+              );
 
               Navigator.pop(context);
               widget.onSave?.call();
@@ -349,30 +365,216 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                      ),
-                      alignment: Alignment.centerRight,
-                      child: TextField(
-                        controller: TextEditingController()
-                          ..text = '${_laundryRecord?.price ?? 0}',
-                        onChanged: (v) {
-                          _laundryRecord?.price =
-                              double.tryParse(v) ?? _laundryRecord?.price;
-                        },
-                        decoration: InputDecoration(
-                          label: Text(
-                            'Price',
-                          ),
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                        ),
+                      child: Container(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () async {
+                        final box = (await Hive.openBox<LaundryRecordDetail>(
+                          laundryRecordDetailsHiveTable,
+                        ));
+
+                        final lD = LaundryRecordDetail()
+                          ..name = ''
+                          ..created = DateTime.now().millisecondsSinceEpoch
+                          ..updated = DateTime.now().millisecondsSinceEpoch
+                          ..uuid = Uuid().v4()
+                          ..laundryRecordUuid = _laundryRecord?.uuid
+                          ..price = 0.0;
+
+                        box.add(lD);
+                        await lD.save();
+
+                        setState(() {});
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(Icons.add),
+                          Text(
+                            'Add Detail',
+                          )
+                        ],
                       ),
                     ),
                   )
+                      // Container(
+                      //   margin: EdgeInsets.only(
+                      //     top: 10,
+                      //     bottom: 10,
+                      //   ),
+                      //   alignment: Alignment.centerRight,
+                      //   child: TextField(
+                      //     controller: TextEditingController()
+                      //       ..text = '${_laundryRecord?.price ?? 0}',
+                      //     onChanged: (v) {
+                      //       _laundryRecord?.price =
+                      //           double.tryParse(v) ?? _laundryRecord?.price;
+                      //     },
+                      //     decoration: InputDecoration(
+                      //       label: Text(
+                      //         'Price',
+                      //       ),
+                      //       isDense: true,
+                      //       border: OutlineInputBorder(),
+                      //     ),
+                      //   ),
+                      // ),
+                      )
                 ],
+              ),
+            ),
+            // Container(
+            //   child: TextButton(
+            //     child: Text('Check'),
+            //     onPressed: () async {
+            //       final lDs = (await Hive.openBox<LaundryRecordDetail>(
+            //               laundryRecordDetailsHiveTable))
+            //           .values
+            //           ?.where(
+            //               (lD) => lD.laundryRecordUuid == _laundryRecord?.uuid)
+            //           .toList();
+
+            //       showDialog(
+            //         context: context,
+            //         builder: (_) => AlertDialog(
+            //           title: Text('debug'),
+            //           content: Text(
+            //             jsonEncode(lDs),
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
+            Container(
+              child: FutureBuilder(
+                future: (Hive.openBox<LaundryRecordDetail>(
+                  laundryRecordDetailsHiveTable,
+                )),
+                builder: (
+                  ctx,
+                  AsyncSnapshot<Box<LaundryRecordDetail>> snapshot,
+                ) {
+                  final lDs = snapshot.data?.values.where(
+                    (lD) =>
+                        lD.deleted == null &&
+                        lD.laundryRecordUuid == _laundryRecord?.uuid,
+                  );
+
+                  return Container(
+                    child: Column(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(
+                            bottom: 10,
+                          ),
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Total: ${NumberFormat.decimalPattern().format(
+                                        lDs?.fold(
+                                          0.0,
+                                          (acc, lD) =>
+                                              (acc as double) + (lD.price ?? 0),
+                                        ),
+                                      ) ?? 0} ',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                child: TextButton(
+                                  child: Text(
+                                    'Refresh',
+                                  ),
+                                  onPressed: () {
+                                    setState(() {});
+                                  },
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                        ...(lDs
+                                ?.map(
+                                  (lD) => Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Container(
+                                                child: TextField(
+                                                  onChanged: (v) {
+                                                    lD.name = v;
+                                                  },
+                                                  controller:
+                                                      TextEditingController()
+                                                        ..text = lD.name ?? '',
+                                                  decoration: InputDecoration(
+                                                    isDense: true,
+                                                    label: Text(
+                                                      'Name',
+                                                    ),
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Container(
+                                                child: TextField(
+                                                  onChanged: (v) {
+                                                    lD.price =
+                                                        double.tryParse(v) ??
+                                                            lD.price;
+                                                  },
+                                                  controller:
+                                                      TextEditingController()
+                                                        ..text =
+                                                            '${lD?.price}' ??
+                                                                '0.0',
+                                                  decoration: InputDecoration(
+                                                    isDense: true,
+                                                    label: Text(
+                                                      'Price',
+                                                    ),
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        // Container(
+                                        //   child: Text(
+                                        //     lD?.uuid ?? '',
+                                        //   ),
+                                        // ),
+                                        Container(
+                                          child: Divider(),
+                                          margin: EdgeInsets.only(
+                                            top: 10,
+                                            bottom: 10,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                )
+                                .toList() ??
+                            [])
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
             Container(

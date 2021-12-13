@@ -47,8 +47,8 @@ class _DashboardPageState extends State<DashboardPage> {
         onPressed: () async {
           final l = LaundryRecord()
             ..uuid = Uuid().v4()
-            ..createdAt = DateTime.now().millisecondsSinceEpoch
-            ..updatedAt = DateTime.now().millisecondsSinceEpoch
+            ..created = DateTime.now().millisecondsSinceEpoch
+            ..updated = DateTime.now().millisecondsSinceEpoch
             ..date = DateTime.parse(
               '${DateTime.now().toLocal().toIso8601String().split('T')[0]}T00:00:00Z',
             ).millisecondsSinceEpoch;
@@ -379,15 +379,46 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 child: Container(
                                                   alignment:
                                                       Alignment.centerLeft,
-                                                  child: Text(
-                                                    '${l?.weight ?? 0.0} kg : ${NumberFormat.decimalPattern().format(
-                                                      l.price ?? 0,
-                                                    )}',
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                                  child: FutureBuilder(
+                                                    future: (Hive.openBox<
+                                                            LaundryRecordDetail>(
+                                                        laundryRecordDetailsHiveTable)),
+                                                    builder: (
+                                                      context,
+                                                      AsyncSnapshot<
+                                                              Box<LaundryRecordDetail>>
+                                                          snapshot,
+                                                    ) {
+                                                      final aggregatedPrice =
+                                                          snapshot.data?.values
+                                                                  .where(
+                                                                    (lD) =>
+                                                                        lD.deleted ==
+                                                                            null &&
+                                                                        lD.laundryRecordUuid ==
+                                                                            l.uuid,
+                                                                  )
+                                                                  .fold(
+                                                                    0.0,
+                                                                    (acc, lD) =>
+                                                                        ((acc as double) ??
+                                                                            0) +
+                                                                        (lD.price ??
+                                                                            0.0),
+                                                                  ) ??
+                                                              0.0;
+
+                                                      return Text(
+                                                        '${l?.weight ?? 0.0} kg : ${NumberFormat.decimalPattern().format(
+                                                          aggregatedPrice,
+                                                        )}',
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
                                                 ),
                                               ),
@@ -446,7 +477,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                         ),
                                         Container(
                                           child: Text(
-                                            'Created ${l.createdAt != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.createdAt!)) : ''}, Updated ${l.updatedAt != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.updatedAt!)) : ''}',
+                                            'Created ${l.created != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.created!)) : ''}, Updated ${l.updated != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.updated!)) : ''}',
                                             style: TextStyle(fontSize: 11),
                                           ),
                                         )

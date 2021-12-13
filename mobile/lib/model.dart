@@ -10,13 +10,13 @@ class BaseModel {
   String? uuid;
 
   @HiveField(254)
-  int? createdAt;
+  int? created;
 
   @HiveField(253)
-  int? updatedAt;
+  int? updated;
 
   @HiveField(252)
-  int? deletedAt;
+  int? deleted;
 }
 
 @JsonSerializable()
@@ -116,6 +116,26 @@ class LaundryDocument extends HiveObject with BaseModel {
 }
 
 @JsonSerializable()
+@HiveType(typeId: 5)
+class LaundryRecordDetail extends HiveObject with BaseModel {
+  LaundryRecordDetail();
+
+  @HiveField(0)
+  String? name;
+
+  @HiveField(1)
+  String? laundryRecordUuid;
+
+  @HiveField(2)
+  double? price;
+
+  static LaundryRecordDetail create() => LaundryRecordDetail();
+  static LaundryRecordDetail fromJson(Map<String, dynamic> json) =>
+      _$LaundryRecordDetailFromJson(json);
+  Map<String, dynamic> toJson() => _$LaundryRecordDetailToJson(this);
+}
+
+@JsonSerializable()
 @HiveType(typeId: 4)
 class Expense extends HiveObject with BaseModel {
   Expense();
@@ -146,10 +166,10 @@ class BackupRecord extends HiveObject {
   String? email;
 
   @HiveField(2)
-  String? createdAt;
+  String? created;
 
   @HiveField(3)
-  String? updatedAt;
+  String? updated;
 
   @HiveField(4)
   String? customers;

@@ -44,6 +44,51 @@
       },
       "oauth_client": [
         {
+          "client_id": "67053471779-d54trcvtvninb5l3o5i54h682lmlj8i8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.openlaundry",
+            "certificate_hash": "6ec4704e861b89495f326c26cd0dc1570201fdde"
+          }
+        },
+        {
+          "client_id": "67053471779-v2cr6qus7n9toa2nu7g1f3gace1tmuvs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.openlaundry",
+            "certificate_hash": "d63ab5c9e85f16194804b1971500ef5abbc674de"
+          }
+        },
+        {
+          "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRQ9XZXfMENIlnM4p6MFsax79eth5bLmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67053471779:android:3310d160032f9f84214996",
+        "android_client_info": {
+          "package_name": "com.example.puskesmaspasirnangka"
+        }
+      },
+      "oauth_client": [
+        {
           "client_id": "67053471779-3ev6dru8jk1nul23f4r4ap455a0hjdjl.apps.googleusercontent.com",
           "client_type": 3
         }

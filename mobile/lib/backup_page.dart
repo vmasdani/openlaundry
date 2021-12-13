@@ -70,8 +70,8 @@ class _BackupPageState extends State<BackupPage> {
                   Container(
                     child: Text('Last update: ' +
                         (() {
-                          final date = state.updatedAt != null
-                              ? DateTime.parse('${state.updatedAt}Z').toLocal()
+                          final date = state.updated != null
+                              ? DateTime.parse('${state.updated}Z').toLocal()
                               : null;
 
                           return date != null
@@ -87,116 +87,116 @@ class _BackupPageState extends State<BackupPage> {
                     Center(
                       child: ElevatedButton.icon(
                           onPressed: () async {
-                            try {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
+                            // try {
+                            //   final prefs =
+                            //       await SharedPreferences.getInstance();
 
-                              print(
-                                  '[Customers prefs] ${prefs.getString('customers')?.length}');
-                              print(
-                                  '[Expenses prefs] ${prefs.getString('expenses')?.length}');
+                            //   print(
+                            //       '[Customers prefs] ${prefs.getString('customers')?.length}');
+                            //   print(
+                            //       '[Expenses prefs] ${prefs.getString('expenses')?.length}');
 
-                              print(
-                                  '[Requesting to] ${'${state.baseUrl}/backup'}');
-                              final res = await http.post(
-                                  Uri.parse('${state.baseUrl}/backup'),
-                                  headers: {
-                                    'authorization': state.idToken ?? '',
-                                    'content-type': 'application/json'
-                                  },
-                                  body: jsonEncode({
-                                    'email': state.email,
-                                    'customers': prefs.getString("customers"),
-                                    'laundryDocuments':
-                                        prefs.getString("laundrydocuments"),
-                                    'laundryRecords':
-                                        prefs.getString("laundryrecords"),
-                                    'expenses': prefs.getString("expenses"),
-                                  }));
+                            //   print(
+                            //       '[Requesting to] ${'${state.baseUrl}/backup'}');
+                            //   final res = await http.post(
+                            //       Uri.parse('${state.baseUrl}/backup'),
+                            //       headers: {
+                            //         'authorization': state.idToken ?? '',
+                            //         'content-type': 'application/json'
+                            //       },
+                            //       body: jsonEncode({
+                            //         'email': state.email,
+                            //         'customers': prefs.getString("customers"),
+                            //         'laundryDocuments':
+                            //             prefs.getString("laundrydocuments"),
+                            //         'laundryRecords':
+                            //             prefs.getString("laundryrecords"),
+                            //         'expenses': prefs.getString("expenses"),
+                            //       }));
 
-                              if (res.statusCode != HttpStatus.ok)
-                                throw res.body;
+                            //   if (res.statusCode != HttpStatus.ok)
+                            //     throw res.body;
 
-                              print('[Backup success] ${res.body}');
+                            //   print('[Backup success] ${res.body}');
 
-                              print('[Decoding]');
-                              print(jsonDecode(res.body));
-                              final backupRecord =
-                                  BackupRecord.fromJson(jsonDecode(res.body));
-                              print('[Decoding OK]');
+                            //   print('[Decoding]');
+                            //   print(jsonDecode(res.body));
+                            //   final backupRecord =
+                            //       BackupRecord.fromJson(jsonDecode(res.body));
+                            //   print('[Decoding OK]');
 
-                              print(backupRecord.customers);
+                            //   print(backupRecord.customers);
 
-                              // Set pref strings and backup
+                            //   // Set pref strings and backup
 
-                              print('[Setting cust]');
-                              print(backupRecord.customers);
-                              // Customers
-                              if (backupRecord.customers != null) {
-                                await prefs.setString(
-                                    'customers', backupRecord.customers!);
-                              }
+                            //   print('[Setting cust]');
+                            //   print(backupRecord.customers);
+                            //   // Customers
+                            //   if (backupRecord.customers != null) {
+                            //     await prefs.setString(
+                            //         'customers', backupRecord.customers!);
+                            //   }
 
-                              // Laundry Documents
-                              print('[Setting docs]');
+                            //   // Laundry Documents
+                            //   print('[Setting docs]');
 
-                              if (backupRecord.laundryDocuments != null) {
-                                await prefs.setString('laundrydocuments',
-                                    backupRecord.laundryDocuments!);
-                              }
+                            //   if (backupRecord.laundryDocuments != null) {
+                            //     await prefs.setString('laundrydocuments',
+                            //         backupRecord.laundryDocuments!);
+                            //   }
 
-                              // Laundry records
-                              print('[Setting records]');
+                            //   // Laundry records
+                            //   print('[Setting records]');
 
-                              if (backupRecord.laundryRecords != null) {
-                                await prefs.setString('laundryrecords',
-                                    backupRecord.laundryRecords!);
-                              }
+                            //   if (backupRecord.laundryRecords != null) {
+                            //     await prefs.setString('laundryrecords',
+                            //         backupRecord.laundryRecords!);
+                            //   }
 
-                              // Expenses
-                              print('[Setting expenses]');
-                              if (backupRecord.expenses != null) {
-                                await prefs.setString(
-                                    'expenses', backupRecord.expenses!);
-                              }
+                            //   // Expenses
+                            //   print('[Setting expenses]');
+                            //   if (backupRecord.expenses != null) {
+                            //     await prefs.setString(
+                            //         'expenses', backupRecord.expenses!);
+                            //   }
 
-                              print('[Setting createdAt and updatedAt]');
-                              // Created and updatedAt
-                              state.setCreatedAt(backupRecord.createdAt);
-                              state.setUpdatedAt(backupRecord.updatedAt);
+                            //   print('[Setting created and updated]');
+                            //   // Created and updated
+                            //   state.setcreated(backupRecord.created);
+                            //   state.setupdated(backupRecord.updated);
 
-                              await state.initState();
+                            //   await state.initState();
 
-                              showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                        title: Text('Success!'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('OK'),
-                                          )
-                                        ],
-                                      ));
-                            } catch (e) {
-                              print('[Synchronisation error] $e');
+                            //   showDialog(
+                            //       context: context,
+                            //       builder: (_) => AlertDialog(
+                            //             title: Text('Success!'),
+                            //             actions: [
+                            //               TextButton(
+                            //                 onPressed: () {
+                            //                   Navigator.pop(context);
+                            //                 },
+                            //                 child: Text('OK'),
+                            //               )
+                            //             ],
+                            //           ));
+                            // } catch (e) {
+                            //   print('[Synchronisation error] $e');
 
-                              showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                        title: Text('Error!'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: Text('$e'),
-                                          )
-                                        ],
-                                      ));
-                            }
+                            //   showDialog(
+                            //       context: context,
+                            //       builder: (_) => AlertDialog(
+                            //             title: Text('Error!'),
+                            //             actions: [
+                            //               TextButton(
+                            //                 onPressed: () {
+                            //                   Navigator.pop(context);
+                            //                 },
+                            //                 child: Text('$e'),
+                            //               )
+                            //             ],
+                            //           ));
+                            // }
                           },
                           icon: Icon(Icons.sync),
                           label: Text(
@@ -315,111 +315,111 @@ class _BackupPageState extends State<BackupPage> {
                       ),
                     ),
                   ]),
-            Container(
-              margin: EdgeInsets.only(top: 10, bottom: 10),
-              child: Center(
-                child: MaterialButton(
-                  color: Colors.green,
-                  child: Container(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Save to JSON file',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                              alignment: Alignment.centerRight,
-                              child: Icon(
-                                Icons.save_alt,
-                                color: Colors.white,
-                              )),
-                        ),
-                      ],
-                    ),
-                  ),
-                  onPressed: () async {
-                    try {
-                      final path = await (() async {
-                        if (Platform.isAndroid) {
-                          return await getExternalStorageDirectory();
-                        } else {
-                          return await getApplicationDocumentsDirectory();
-                        }
-                      })();
+            // Container(
+            //   margin: EdgeInsets.only(top: 10, bottom: 10),
+            //   child: Center(
+            //     child: MaterialButton(
+            //       color: Colors.green,
+            //       child: Container(
+            //         child: Row(
+            //           children: [
+            //             Expanded(
+            //               child: Text(
+            //                 'Save to JSON file',
+            //                 style: TextStyle(color: Colors.white),
+            //               ),
+            //             ),
+            //             Expanded(
+            //               child: Container(
+            //                   alignment: Alignment.centerRight,
+            //                   child: Icon(
+            //                     Icons.save_alt,
+            //                     color: Colors.white,
+            //                   )),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //       onPressed: () async {
+            //         try {
+            //           final path = await (() async {
+            //             if (Platform.isAndroid) {
+            //               return await getExternalStorageDirectory();
+            //             } else {
+            //               return await getApplicationDocumentsDirectory();
+            //             }
+            //           })();
 
-                      final fullPath =
-                          '${path?.path}/openlaundry_backup_${makeReadableDateString(DateTime.now())}_${DateTime.now().millisecondsSinceEpoch}.txt';
+            //           final fullPath =
+            //               '${path?.path}/openlaundry_backup_${makeReadableDateString(DateTime.now())}_${DateTime.now().millisecondsSinceEpoch}.txt';
 
-                      print('Start encoding here');
-                      print(fullPath);
+            //           print('Start encoding here');
+            //           print(fullPath);
 
-                      final jsonFileContents = jsonEncode({
-                        'customers': base64.encode(GZipCodec()
-                            .encode(utf8.encode(jsonEncode(state.customers)))),
-                        'laundryrecords': base64.encode(GZipCodec().encode(
-                            utf8.encode(jsonEncode(state.laundryRecords)))),
-                        'laundrydocuments': base64.encode(GZipCodec().encode(
-                            utf8.encode(jsonEncode(state.laundryDocuments))))
-                      });
+            //           final jsonFileContents = jsonEncode({
+            //             'customers': base64.encode(GZipCodec()
+            //                 .encode(utf8.encode(jsonEncode(state.customers)))),
+            //             'laundryrecords': base64.encode(GZipCodec().encode(
+            //                 utf8.encode(jsonEncode(state.laundryRecords)))),
+            //             'laundrydocuments': base64.encode(GZipCodec().encode(
+            //                 utf8.encode(jsonEncode(state.laundryDocuments))))
+            //           });
 
-                      await (File(fullPath)).writeAsString(jsonFileContents);
+            //           await (File(fullPath)).writeAsString(jsonFileContents);
 
-                      print('Write finished here');
+            //           print('Write finished here');
 
-                      print(fullPath);
-                      print(jsonFileContents);
+            //           print(fullPath);
+            //           print(jsonFileContents);
 
-                      showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                                title: Text('Saved!'),
-                                content: Text('Saved to $fullPath'),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        OpenFile.open(fullPath);
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text('Open File'))
-                                ],
-                              ));
-                    } catch (e) {
-                      print('[Error] $e');
-                    }
-                  },
-                ),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 10, bottom: 10),
-              child: Center(
-                child: MaterialButton(
-                  color: Colors.blue,
-                  child: Container(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Import data',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                              alignment: Alignment.centerRight,
-                              child: Icon(Icons.backup_outlined,
-                                  color: Colors.white)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  onPressed: () {},
-                ),
-              ),
-            ),
+            //           showDialog(
+            //               context: context,
+            //               builder: (_) => AlertDialog(
+            //                     title: Text('Saved!'),
+            //                     content: Text('Saved to $fullPath'),
+            //                     actions: [
+            //                       TextButton(
+            //                           onPressed: () {
+            //                             OpenFile.open(fullPath);
+            //                             Navigator.pop(context);
+            //                           },
+            //                           child: Text('Open File'))
+            //                     ],
+            //                   ));
+            //         } catch (e) {
+            //           print('[Error] $e');
+            //         }
+            //       },
+            //     ),
+            //   ),
+            // ),
+            // Container(
+            //   margin: EdgeInsets.only(top: 10, bottom: 10),
+            //   child: Center(
+            //     child: MaterialButton(
+            //       color: Colors.blue,
+            //       child: Container(
+            //         child: Row(
+            //           children: [
+            //             Expanded(
+            //               child: Text(
+            //                 'Import data',
+            //                 style: TextStyle(color: Colors.white),
+            //               ),
+            //             ),
+            //             Expanded(
+            //               child: Container(
+            //                   alignment: Alignment.centerRight,
+            //                   child: Icon(Icons.backup_outlined,
+            //                       color: Colors.white)),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //       onPressed: () {},
+            //     ),
+            //   ),
+            // ),
             Divider(),
             Container(
               child: ExpansionPanelList(

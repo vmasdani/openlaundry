@@ -57,17 +57,17 @@ class AppState with ChangeNotifier {
   String? title = 'Home';
 
   // TABLES
-  List<Customer>? customers;
-  List<LaundryRecord>? laundryRecords;
-  List<LaundryDocument>? laundryDocuments;
-  List<Expense>? expenses;
+  // List<Customer>? customers;
+  // List<LaundryRecord>? laundryRecords;
+  // List<LaundryDocument>? laundryDocuments;
+  // List<Expense>? expenses;
 
   String? email;
   String? accessToken;
   String? idToken;
 
-  String? createdAt;
-  String? updatedAt;
+  String? created;
+  String? updated;
 
   String? baseUrl;
 
@@ -101,13 +101,13 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  setCreatedAt(String? newCreatedAt) {
-    createdAt = createdAt;
+  setcreated(String? newcreated) {
+    created = created;
     notifyListeners();
   }
 
-  setUpdatedAt(String? newUpdatedAt) {
-    updatedAt = updatedAt;
+  setupdated(String? newupdated) {
+    updated = updated;
     notifyListeners();
   }
 
@@ -126,137 +126,137 @@ class AppState with ChangeNotifier {
 
     final tableStr = decodeTableStr<T>();
 
-    if (tableStr != null) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        final tableContentsGzippedBase64String =
-            prefs.getString(tableStr.tableName ?? '');
+    // if (tableStr != null) {
+    //   try {
+    //     final prefs = await SharedPreferences.getInstance();
+    //     final tableContentsGzippedBase64String =
+    //         prefs.getString(tableStr.tableName ?? '');
 
-        final tableContentsBase64String =
-            tableContentsGzippedBase64String != null
-                ? GZipCodec()
-                    .decode(base64.decode(tableContentsGzippedBase64String))
-                : null;
+    //     final tableContentsBase64String =
+    //         tableContentsGzippedBase64String != null
+    //             ? GZipCodec()
+    //                 .decode(base64.decode(tableContentsGzippedBase64String))
+    //             : null;
 
-        if (tableContentsBase64String != null) {
-          final bytesStr = utf8.decode(tableContentsBase64String);
+    //     if (tableContentsBase64String != null) {
+    //       final bytesStr = utf8.decode(tableContentsBase64String);
 
-          try {
-            final decodedItems = (jsonDecode(bytesStr) as List<dynamic>)
-                .map((json) => tableStr.fromJson!(json) as T)
-                .toList();
+    //       try {
+    //         final decodedItems = (jsonDecode(bytesStr) as List<dynamic>)
+    //             .map((json) => tableStr.fromJson!(json) as T)
+    //             .toList();
 
-            print('Decoded items');
-            print(decodedItems);
+    //         print('Decoded items');
+    //         print(decodedItems);
 
-            final data = batchData != null ? batchData : [item];
+    //         final data = batchData != null ? batchData : [item];
 
-            await Future.wait(data.map((item) async {
-              if (item.createdAt == null) {
-                item.createdAt = DateTime.now().millisecondsSinceEpoch;
-              }
+    //         await Future.wait(data.map((item) async {
+    //           if (item.created == null) {
+    //             item.created = DateTime.now().millisecondsSinceEpoch;
+    //           }
 
-              item.updatedAt = DateTime.now().millisecondsSinceEpoch;
+    //           item.updated = DateTime.now().millisecondsSinceEpoch;
 
-              if (item.uuid != null && item.uuid != '') {
-                final i =
-                    decodedItems.indexWhere((itemX) => itemX.uuid == item.uuid);
-                decodedItems[i] = item;
-              } else {
-                item.uuid = Uuid().v4();
-                decodedItems.add(item);
-              }
+    //           if (item.uuid != null && item.uuid != '') {
+    //             final i =
+    //                 decodedItems.indexWhere((itemX) => itemX.uuid == item.uuid);
+    //             decodedItems[i] = item;
+    //           } else {
+    //             item.uuid = Uuid().v4();
+    //             decodedItems.add(item);
+    //           }
 
-              newUuid = item.uuid;
-            }));
+    //           newUuid = item.uuid;
+    //         }));
 
-            switch (T) {
-              case Customer:
-                customers = decodedItems as List<Customer>;
-                break;
+    //         switch (T) {
+    //           case Customer:
+    //             customers = decodedItems as List<Customer>;
+    //             break;
 
-              case LaundryRecord:
-                laundryRecords = decodedItems as List<LaundryRecord>;
-                break;
+    //           case LaundryRecord:
+    //             laundryRecords = decodedItems as List<LaundryRecord>;
+    //             break;
 
-              case LaundryDocument:
-                laundryDocuments = decodedItems as List<LaundryDocument>;
-                break;
+    //           case LaundryDocument:
+    //             laundryDocuments = decodedItems as List<LaundryDocument>;
+    //             break;
 
-              case Expense:
-                expenses = decodedItems as List<Expense>;
-                break;
-            }
+    //           case Expense:
+    //             expenses = decodedItems as List<Expense>;
+    //             break;
+    //         }
 
-            prefs.setString(
-                tableStr.tableName ?? '',
-                base64.encode(
-                    GZipCodec().encode(utf8.encode(jsonEncode(decodedItems)))));
-          } catch (e) {
-            print('[Decoded items error]');
+    //         prefs.setString(
+    //             tableStr.tableName ?? '',
+    //             base64.encode(
+    //                 GZipCodec().encode(utf8.encode(jsonEncode(decodedItems)))));
+    //       } catch (e) {
+    //         print('[Decoded items error]');
 
-            print(e);
-          }
-        }
-      } catch (e) {}
-    }
+    //         print(e);
+    //       }
+    //     }
+    //   } catch (e) {}
+    // }
 
     notifyListeners();
 
     return newUuid;
   }
 
-  Future<void> initGeneric<T>() async {
-    final prefs = await SharedPreferences.getInstance();
+  // Future<void> initGeneric<T>() async {
+  //   final prefs = await SharedPreferences.getInstance();
 
-    final tableDetail = decodeTableStr<T>();
+  //   final tableDetail = decodeTableStr<T>();
 
-    final gzipBase64String = prefs.getString(tableDetail?.tableName ?? '');
+  //   final gzipBase64String = prefs.getString(tableDetail?.tableName ?? '');
 
-    if (gzipBase64String != null && gzipBase64String != '') {
-      final decodedGzipBase64StringList = (jsonDecode(
-              utf8.decode(GZipCodec().decode(base64.decode(gzipBase64String))))
-          as List<dynamic>);
+  //   if (gzipBase64String != null && gzipBase64String != '') {
+  //     final decodedGzipBase64StringList = (jsonDecode(
+  //             utf8.decode(GZipCodec().decode(base64.decode(gzipBase64String))))
+  //         as List<dynamic>);
 
-      final decodedItems = decodedGzipBase64StringList
-          .map((json) => tableDetail?.fromJson!(json) as T)
-          .toList();
+  //     final decodedItems = decodedGzipBase64StringList
+  //         .map((json) => tableDetail?.fromJson!(json) as T)
+  //         .toList();
 
-      print('Checking  ${T}');
+  //     print('Checking  ${T}');
 
-      switch (T) {
-        case Customer:
-          customers = decodedItems as List<Customer>;
-          break;
+  //     switch (T) {
+  //       case Customer:
+  //         customers = decodedItems as List<Customer>;
+  //         break;
 
-        case LaundryRecord:
-          laundryRecords = decodedItems as List<LaundryRecord>;
-          break;
+  //       case LaundryRecord:
+  //         laundryRecords = decodedItems as List<LaundryRecord>;
+  //         break;
 
-        case LaundryDocument:
-          laundryDocuments = decodedItems as List<LaundryDocument>;
-          break;
+  //       case LaundryDocument:
+  //         laundryDocuments = decodedItems as List<LaundryDocument>;
+  //         break;
 
-        case Expense:
-          expenses = decodedItems as List<Expense>;
-          break;
+  //       case Expense:
+  //         expenses = decodedItems as List<Expense>;
+  //         break;
 
-        default:
-          print('Type irrelevant');
-      }
-    } else {
-      prefs.setString(tableDetail?.tableName ?? '',
-          base64.encode(GZipCodec().encode(utf8.encode('[]'))));
-    }
-  }
+  //       default:
+  //         print('Type irrelevant');
+  //     }
+  //   } else {
+  //     prefs.setString(tableDetail?.tableName ?? '',
+  //         base64.encode(GZipCodec().encode(utf8.encode('[]'))));
+  //   }
+  // }
 
   Future<void> initState() async {
-    print('\nInitializing state\n');
+    // print('\nInitializing state\n');
 
-    await initGeneric<Customer>();
-    await initGeneric<LaundryRecord>();
-    await initGeneric<LaundryDocument>();
-    await initGeneric<Expense>();
+    // await initGeneric<Customer>();
+    // await initGeneric<LaundryRecord>();
+    // await initGeneric<LaundryDocument>();
+    // await initGeneric<Expense>();
 
     //  Get email and accessToken
     final prefs = await SharedPreferences.getInstance();
@@ -318,8 +318,8 @@ class AppState with ChangeNotifier {
           final jsonInfo = jsonDecode(res.body);
 
           try {
-            createdAt = jsonInfo['createdAt'];
-            updatedAt = jsonInfo['updatedAt'];
+            created = jsonInfo['created'];
+            updated = jsonInfo['updated'];
           } catch (e) {
             print('[Decode jsonInfo error] $e');
           }
@@ -329,9 +329,9 @@ class AppState with ChangeNotifier {
       }
     });
 
-    print('Customers ${customers?.length}');
-    print('Laundry Records ${laundryRecords?.length}');
-    print('Laundry Documents ${laundryDocuments?.length}');
+    // print('Customers ${customers?.length}');
+    // print('Laundry Records ${laundryRecords?.length}');
+    // print('Laundry Documents ${laundryDocuments?.length}');
 
     notifyListeners();
   }
@@ -363,18 +363,18 @@ class AppState with ChangeNotifier {
           // decodedItems.removeAt(i);
 
           // No longer remove items, but just add deletedAt
-          decodedItems[i].deletedAt = DateTime.now().millisecondsSinceEpoch;
+          decodedItems[i].deleted = DateTime.now().millisecondsSinceEpoch;
         }
 
-        if (T == Customer) {
-          customers = decodedItems as List<Customer>;
-        } else if (T == LaundryRecord) {
-          laundryRecords = decodedItems as List<LaundryRecord>;
-        } else if (T == LaundryDocument) {
-          laundryDocuments = decodedItems as List<LaundryDocument>;
-        } else {
-          print('Type irrelevant');
-        }
+        // if (T == Customer) {
+        //   customers = decodedItems as List<Customer>;
+        // } else if (T == LaundryRecord) {
+        //   laundryRecords = decodedItems as List<LaundryRecord>;
+        // } else if (T == LaundryDocument) {
+        //   laundryDocuments = decodedItems as List<LaundryDocument>;
+        // } else {
+        //   print('Type irrelevant');
+        // }
 
         prefs.setString(
             tableDetail?.tableName ?? '',

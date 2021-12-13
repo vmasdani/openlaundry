@@ -21,9 +21,9 @@ class CustomerAdapter extends TypeAdapter<Customer> {
       ..phone = fields[1] as String?
       ..address = fields[2] as String?
       ..uuid = fields[255] as String?
-      ..createdAt = fields[254] as int?
-      ..updatedAt = fields[253] as int?
-      ..deletedAt = fields[252] as int?;
+      ..created = fields[254] as int?
+      ..updated = fields[253] as int?
+      ..deleted = fields[252] as int?;
   }
 
   @override
@@ -39,11 +39,11 @@ class CustomerAdapter extends TypeAdapter<Customer> {
       ..writeByte(255)
       ..write(obj.uuid)
       ..writeByte(254)
-      ..write(obj.createdAt)
+      ..write(obj.created)
       ..writeByte(253)
-      ..write(obj.updatedAt)
+      ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deletedAt);
+      ..write(obj.deleted);
   }
 
   @override
@@ -85,9 +85,9 @@ class LaundryRecordAdapter extends TypeAdapter<LaundryRecord> {
       ..date = fields[14] as int?
       ..isPaid = fields[15] as int?
       ..uuid = fields[255] as String?
-      ..createdAt = fields[254] as int?
-      ..updatedAt = fields[253] as int?
-      ..deletedAt = fields[252] as int?;
+      ..created = fields[254] as int?
+      ..updated = fields[253] as int?
+      ..deleted = fields[252] as int?;
   }
 
   @override
@@ -129,11 +129,11 @@ class LaundryRecordAdapter extends TypeAdapter<LaundryRecord> {
       ..writeByte(255)
       ..write(obj.uuid)
       ..writeByte(254)
-      ..write(obj.createdAt)
+      ..write(obj.created)
       ..writeByte(253)
-      ..write(obj.updatedAt)
+      ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deletedAt);
+      ..write(obj.deleted);
   }
 
   @override
@@ -161,9 +161,9 @@ class LaundryDocumentAdapter extends TypeAdapter<LaundryDocument> {
       ..name = fields[0] as String?
       ..date = fields[1] as int?
       ..uuid = fields[255] as String?
-      ..createdAt = fields[254] as int?
-      ..updatedAt = fields[253] as int?
-      ..deletedAt = fields[252] as int?;
+      ..created = fields[254] as int?
+      ..updated = fields[253] as int?
+      ..deleted = fields[252] as int?;
   }
 
   @override
@@ -177,11 +177,11 @@ class LaundryDocumentAdapter extends TypeAdapter<LaundryDocument> {
       ..writeByte(255)
       ..write(obj.uuid)
       ..writeByte(254)
-      ..write(obj.createdAt)
+      ..write(obj.created)
       ..writeByte(253)
-      ..write(obj.updatedAt)
+      ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deletedAt);
+      ..write(obj.deleted);
   }
 
   @override
@@ -191,6 +191,57 @@ class LaundryDocumentAdapter extends TypeAdapter<LaundryDocument> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is LaundryDocumentAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class LaundryRecordDetailAdapter extends TypeAdapter<LaundryRecordDetail> {
+  @override
+  final int typeId = 5;
+
+  @override
+  LaundryRecordDetail read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return LaundryRecordDetail()
+      ..name = fields[0] as String?
+      ..laundryRecordUuid = fields[1] as String?
+      ..price = fields[2] as double?
+      ..uuid = fields[255] as String?
+      ..created = fields[254] as int?
+      ..updated = fields[253] as int?
+      ..deleted = fields[252] as int?;
+  }
+
+  @override
+  void write(BinaryWriter writer, LaundryRecordDetail obj) {
+    writer
+      ..writeByte(7)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.laundryRecordUuid)
+      ..writeByte(2)
+      ..write(obj.price)
+      ..writeByte(255)
+      ..write(obj.uuid)
+      ..writeByte(254)
+      ..write(obj.created)
+      ..writeByte(253)
+      ..write(obj.updated)
+      ..writeByte(252)
+      ..write(obj.deleted);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LaundryRecordDetailAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
@@ -210,9 +261,9 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..date = fields[1] as int?
       ..amount = fields[2] as double?
       ..uuid = fields[255] as String?
-      ..createdAt = fields[254] as int?
-      ..updatedAt = fields[253] as int?
-      ..deletedAt = fields[252] as int?;
+      ..created = fields[254] as int?
+      ..updated = fields[253] as int?
+      ..deleted = fields[252] as int?;
   }
 
   @override
@@ -228,11 +279,11 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..writeByte(255)
       ..write(obj.uuid)
       ..writeByte(254)
-      ..write(obj.createdAt)
+      ..write(obj.created)
       ..writeByte(253)
-      ..write(obj.updatedAt)
+      ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deletedAt);
+      ..write(obj.deleted);
   }
 
   @override
@@ -259,8 +310,8 @@ class BackupRecordAdapter extends TypeAdapter<BackupRecord> {
     return BackupRecord()
       ..id = fields[0] as int?
       ..email = fields[1] as String?
-      ..createdAt = fields[2] as String?
-      ..updatedAt = fields[3] as String?
+      ..created = fields[2] as String?
+      ..updated = fields[3] as String?
       ..customers = fields[4] as String?
       ..laundryDocuments = fields[5] as String?
       ..laundryRecords = fields[6] as String?
@@ -276,9 +327,9 @@ class BackupRecordAdapter extends TypeAdapter<BackupRecord> {
       ..writeByte(1)
       ..write(obj.email)
       ..writeByte(2)
-      ..write(obj.createdAt)
+      ..write(obj.created)
       ..writeByte(3)
-      ..write(obj.updatedAt)
+      ..write(obj.updated)
       ..writeByte(4)
       ..write(obj.customers)
       ..writeByte(5)
@@ -306,18 +357,18 @@ class BackupRecordAdapter extends TypeAdapter<BackupRecord> {
 
 Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..uuid = json['uuid'] as String?
-  ..createdAt = json['createdAt'] as int?
-  ..updatedAt = json['updatedAt'] as int?
-  ..deletedAt = json['deletedAt'] as int?
+  ..created = json['created'] as int?
+  ..updated = json['updated'] as int?
+  ..deleted = json['deleted'] as int?
   ..name = json['name'] as String?
   ..phone = json['phone'] as String?
   ..address = json['address'] as String?;
 
 Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'uuid': instance.uuid,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
-      'deletedAt': instance.deletedAt,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
       'name': instance.name,
       'phone': instance.phone,
       'address': instance.address,
@@ -326,9 +377,9 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
 LaundryRecord _$LaundryRecordFromJson(Map<String, dynamic> json) =>
     LaundryRecord()
       ..uuid = json['uuid'] as String?
-      ..createdAt = json['createdAt'] as int?
-      ..updatedAt = json['updatedAt'] as int?
-      ..deletedAt = json['deletedAt'] as int?
+      ..created = json['created'] as int?
+      ..updated = json['updated'] as int?
+      ..deleted = json['deleted'] as int?
       ..customerUuid = json['customerUuid'] as String?
       ..laundryDocumentUuid = json['laundryDocumentUuid'] as String?
       ..weight = (json['weight'] as num?)?.toDouble()
@@ -349,9 +400,9 @@ LaundryRecord _$LaundryRecordFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$LaundryRecordToJson(LaundryRecord instance) =>
     <String, dynamic>{
       'uuid': instance.uuid,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
-      'deletedAt': instance.deletedAt,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
       'customerUuid': instance.customerUuid,
       'laundryDocumentUuid': instance.laundryDocumentUuid,
       'weight': instance.weight,
@@ -373,36 +424,58 @@ Map<String, dynamic> _$LaundryRecordToJson(LaundryRecord instance) =>
 LaundryDocument _$LaundryDocumentFromJson(Map<String, dynamic> json) =>
     LaundryDocument()
       ..uuid = json['uuid'] as String?
-      ..createdAt = json['createdAt'] as int?
-      ..updatedAt = json['updatedAt'] as int?
-      ..deletedAt = json['deletedAt'] as int?
+      ..created = json['created'] as int?
+      ..updated = json['updated'] as int?
+      ..deleted = json['deleted'] as int?
       ..name = json['name'] as String?
       ..date = json['date'] as int?;
 
 Map<String, dynamic> _$LaundryDocumentToJson(LaundryDocument instance) =>
     <String, dynamic>{
       'uuid': instance.uuid,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
-      'deletedAt': instance.deletedAt,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
       'name': instance.name,
       'date': instance.date,
     };
 
+LaundryRecordDetail _$LaundryRecordDetailFromJson(Map<String, dynamic> json) =>
+    LaundryRecordDetail()
+      ..uuid = json['uuid'] as String?
+      ..created = json['created'] as int?
+      ..updated = json['updated'] as int?
+      ..deleted = json['deleted'] as int?
+      ..name = json['name'] as String?
+      ..laundryRecordUuid = json['laundryRecordUuid'] as String?
+      ..price = (json['price'] as num?)?.toDouble();
+
+Map<String, dynamic> _$LaundryRecordDetailToJson(
+        LaundryRecordDetail instance) =>
+    <String, dynamic>{
+      'uuid': instance.uuid,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
+      'name': instance.name,
+      'laundryRecordUuid': instance.laundryRecordUuid,
+      'price': instance.price,
+    };
+
 Expense _$ExpenseFromJson(Map<String, dynamic> json) => Expense()
   ..uuid = json['uuid'] as String?
-  ..createdAt = json['createdAt'] as int?
-  ..updatedAt = json['updatedAt'] as int?
-  ..deletedAt = json['deletedAt'] as int?
+  ..created = json['created'] as int?
+  ..updated = json['updated'] as int?
+  ..deleted = json['deleted'] as int?
   ..name = json['name'] as String?
   ..date = json['date'] as int?
   ..amount = (json['amount'] as num?)?.toDouble();
 
 Map<String, dynamic> _$ExpenseToJson(Expense instance) => <String, dynamic>{
       'uuid': instance.uuid,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
-      'deletedAt': instance.deletedAt,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
       'name': instance.name,
       'date': instance.date,
       'amount': instance.amount,
@@ -411,8 +484,8 @@ Map<String, dynamic> _$ExpenseToJson(Expense instance) => <String, dynamic>{
 BackupRecord _$BackupRecordFromJson(Map<String, dynamic> json) => BackupRecord()
   ..id = json['id'] as int?
   ..email = json['email'] as String?
-  ..createdAt = json['createdAt'] as String?
-  ..updatedAt = json['updatedAt'] as String?
+  ..created = json['created'] as String?
+  ..updated = json['updated'] as String?
   ..customers = json['customers'] as String?
   ..laundryDocuments = json['laundryDocuments'] as String?
   ..laundryRecords = json['laundryRecords'] as String?
@@ -422,8 +495,8 @@ Map<String, dynamic> _$BackupRecordToJson(BackupRecord instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,
-      'createdAt': instance.createdAt,
-      'updatedAt': instance.updatedAt,
+      'created': instance.created,
+      'updated': instance.updated,
       'customers': instance.customers,
       'laundryDocuments': instance.laundryDocuments,
       'laundryRecords': instance.laundryRecords,
