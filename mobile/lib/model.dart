@@ -188,3 +188,38 @@ class BackupRecord extends HiveObject {
       _$BackupRecordFromJson(json);
   Map<String, dynamic> toJson() => _$BackupRecordToJson(this);
 }
+
+class BackupTable<T extends BaseModel> {
+  BackupTable();
+
+  String? tableName;
+  Future<Box<T>>? table;
+}
+
+@JsonSerializable()
+class Storage extends HiveObject {
+  Storage();
+
+  String? key;
+
+  @JsonKey(name: 'storage_records')
+  List<StorageRecord>? storageRecords;
+
+  static Storage fromJson(Map<String, dynamic> json) => _$StorageFromJson(json);
+  Map<String, dynamic> toJson() => _$StorageToJson(this);
+}
+
+@JsonSerializable()
+class StorageRecord extends HiveObject {
+  StorageRecord();
+
+  String? uuid;
+  int? created;
+  int? updated;
+  int? deleted;
+  String? value;
+
+  static StorageRecord fromJson(Map<String, dynamic> json) =>
+      _$StorageRecordFromJson(json);
+  Map<String, dynamic> toJson() => _$StorageRecordToJson(this);
+}

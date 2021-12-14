@@ -502,3 +502,31 @@ Map<String, dynamic> _$BackupRecordToJson(BackupRecord instance) =>
       'laundryRecords': instance.laundryRecords,
       'expenses': instance.expenses,
     };
+
+Storage _$StorageFromJson(Map<String, dynamic> json) => Storage()
+  ..key = json['key'] as String?
+  ..storageRecords = (json['storage_records'] as List<dynamic>?)
+      ?.map((e) => StorageRecord.fromJson(e as Map<String, dynamic>))
+      .toList();
+
+Map<String, dynamic> _$StorageToJson(Storage instance) => <String, dynamic>{
+      'key': instance.key,
+      'storage_records': instance.storageRecords,
+    };
+
+StorageRecord _$StorageRecordFromJson(Map<String, dynamic> json) =>
+    StorageRecord()
+      ..uuid = json['uuid'] as String?
+      ..created = json['created'] as int?
+      ..updated = json['updated'] as int?
+      ..deleted = json['deleted'] as int?
+      ..value = json['value'] as String?;
+
+Map<String, dynamic> _$StorageRecordToJson(StorageRecord instance) =>
+    <String, dynamic>{
+      'uuid': instance.uuid,
+      'created': instance.created,
+      'updated': instance.updated,
+      'deleted': instance.deleted,
+      'value': instance.value,
+    };

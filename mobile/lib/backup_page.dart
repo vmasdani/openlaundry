@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:openlaundry/app_state.dart';
+import 'package:collection/collection.dart';
+import 'package:openlaundry/constants.dart';
 import 'package:openlaundry/helpers.dart';
 import 'package:openlaundry/model.dart';
 import 'package:path_provider/path_provider.dart';
@@ -85,124 +89,128 @@ class _BackupPageState extends State<BackupPage> {
             ...(state.email != null
                 ? [
                     Center(
-                      child: ElevatedButton.icon(
-                          onPressed: () async {
-                            // try {
-                            //   final prefs =
-                            //       await SharedPreferences.getInstance();
+                      child: _loading
+                          ? CircularProgressIndicator()
+                          : ElevatedButton.icon(
+                              onPressed: () async {
+                                void sync() async {}
 
-                            //   print(
-                            //       '[Customers prefs] ${prefs.getString('customers')?.length}');
-                            //   print(
-                            //       '[Expenses prefs] ${prefs.getString('expenses')?.length}');
+                                print(
+                                  '[id token] ${state.idToken}',
+                                );
 
-                            //   print(
-                            //       '[Requesting to] ${'${state.baseUrl}/backup'}');
-                            //   final res = await http.post(
-                            //       Uri.parse('${state.baseUrl}/backup'),
-                            //       headers: {
-                            //         'authorization': state.idToken ?? '',
-                            //         'content-type': 'application/json'
-                            //       },
-                            //       body: jsonEncode({
-                            //         'email': state.email,
-                            //         'customers': prefs.getString("customers"),
-                            //         'laundryDocuments':
-                            //             prefs.getString("laundrydocuments"),
-                            //         'laundryRecords':
-                            //             prefs.getString("laundryrecords"),
-                            //         'expenses': prefs.getString("expenses"),
-                            //       }));
+                                setState(() {
+                                  _loading = true;
+                                });
 
-                            //   if (res.statusCode != HttpStatus.ok)
-                            //     throw res.body;
+                                final results = await Future.wait(
+                                  [
+                                    BackupTable()
+                                      ..tableName = laundryDocumentHiveTable
+                                      ..table = Hive.openBox<LaundryDocument>(
+                                        laundryDocumentHiveTable,
+                                      ),
+                                    BackupTable()
+                                      ..tableName = laundryRecordsHiveTable
+                                      ..table = Hive.openBox<LaundryRecord>(
+                                        laundryRecordsHiveTable,
+                                      ),
+                                    BackupTable()
+                                      ..tableName =
+                                          laundryRecordDetailsHiveTable
+                                      ..table =
+                                          Hive.openBox<LaundryRecordDetail>(
+                                        laundryRecordDetailsHiveTable,
+                                      ),
+                                    BackupTable()
+                                      ..tableName = customersHiveTable
+                                      ..table = Hive.openBox<Customer>(
+                                        customersHiveTable,
+                                      ),
+                                  ].map(
+                                    (t) async {
+                                      print(
+                                        'Record ${t.tableName}: ${(await t.table)?.values.length}',
+                                      );
 
-                            //   print('[Backup success] ${res.body}');
+                                      try {
+                                        final res = await http.post(
+                                          Uri.parse(
+                                            '${dotenv.env['STORGE_URL']}/api/v1/sync',
+                                          ),
+                                          headers: {
+                                            'content-type': 'application/json',
+                                            'authorization':
+                                                state.idToken ?? '',
+                                            'auth_type': 'google'
+                                          },
+                                          body: jsonEncode(
+                                            Storage()
+                                              ..key = t.tableName
+                                              ..storageRecords = (await t.table)
+                                                      ?.values
+                                                      .map(
+                                                    (s) {
+                                                      print(
+                                                        '[${t.tableName} crt: ${s.created}, upd: ${s.updated}]',
+                                                      );
 
-                            //   print('[Decoding]');
-                            //   print(jsonDecode(res.body));
-                            //   final backupRecord =
-                            //       BackupRecord.fromJson(jsonDecode(res.body));
-                            //   print('[Decoding OK]');
+                                                      return StorageRecord()
+                                                        ..uuid = s.uuid
+                                                        ..created = s.created
+                                                        ..updated = s.updated
+                                                        ..deleted = s.deleted
+                                                        ..value = jsonEncode(s);
+                                                    },
+                                                  ).toList() ??
+                                                  [],
+                                          ),
+                                        );
 
-                            //   print(backupRecord.customers);
+                                        // print(
+                                        //   '[result ${t.tableName}] ${res.statusCode}',
+                                        // );
+                                        // print(res.body);
 
-                            //   // Set pref strings and backup
+                                        final storage = Storage.fromJson(
+                                          jsonDecode(res.body),
+                                        );
 
-                            //   print('[Setting cust]');
-                            //   print(backupRecord.customers);
-                            //   // Customers
-                            //   if (backupRecord.customers != null) {
-                            //     await prefs.setString(
-                            //         'customers', backupRecord.customers!);
-                            //   }
+                                        print(
+                                          '[result ${t.tableName}] ${res.statusCode}: from storage: ${storage.key}, length: ${storage.storageRecords?.length}',
+                                        );
 
-                            //   // Laundry Documents
-                            //   print('[Setting docs]');
+                                        return 'ok';
+                                      } catch (e) {
+                                        print('[sync ${t.tableName} error] $e');
+                                        return null;
+                                      } finally {}
+                                    },
+                                  ),
+                                );
 
-                            //   if (backupRecord.laundryDocuments != null) {
-                            //     await prefs.setString('laundrydocuments',
-                            //         backupRecord.laundryDocuments!);
-                            //   }
+                                setState(() {
+                                  _loading = false;
+                                });
 
-                            //   // Laundry records
-                            //   print('[Setting records]');
-
-                            //   if (backupRecord.laundryRecords != null) {
-                            //     await prefs.setString('laundryrecords',
-                            //         backupRecord.laundryRecords!);
-                            //   }
-
-                            //   // Expenses
-                            //   print('[Setting expenses]');
-                            //   if (backupRecord.expenses != null) {
-                            //     await prefs.setString(
-                            //         'expenses', backupRecord.expenses!);
-                            //   }
-
-                            //   print('[Setting created and updated]');
-                            //   // Created and updated
-                            //   state.setcreated(backupRecord.created);
-                            //   state.setupdated(backupRecord.updated);
-
-                            //   await state.initState();
-
-                            //   showDialog(
-                            //       context: context,
-                            //       builder: (_) => AlertDialog(
-                            //             title: Text('Success!'),
-                            //             actions: [
-                            //               TextButton(
-                            //                 onPressed: () {
-                            //                   Navigator.pop(context);
-                            //                 },
-                            //                 child: Text('OK'),
-                            //               )
-                            //             ],
-                            //           ));
-                            // } catch (e) {
-                            //   print('[Synchronisation error] $e');
-
-                            //   showDialog(
-                            //       context: context,
-                            //       builder: (_) => AlertDialog(
-                            //             title: Text('Error!'),
-                            //             actions: [
-                            //               TextButton(
-                            //                 onPressed: () {
-                            //                   Navigator.pop(context);
-                            //                 },
-                            //                 child: Text('$e'),
-                            //               )
-                            //             ],
-                            //           ));
-                            // }
-                          },
-                          icon: Icon(Icons.sync),
-                          label: Text(
-                            'Sync',
-                            style: TextStyle(color: Colors.white),
-                          )),
+                                await showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: Text(
+                                      'Sync finished',
+                                    ),
+                                    content: Text(
+                                      '${results.where((r) => r == null).length} error(s) found.',
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.sync),
+                              label: Text(
+                                'Sync',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
                     ),
                   ]
                 : []),
@@ -254,10 +262,18 @@ class _BackupPageState extends State<BackupPage> {
                                     'accessToken', auth!.accessToken!);
                               }
 
+                              if (auth?.idToken != null) {
+                                state.setIdToken(auth?.idToken);
+                                prefs.setString(
+                                  'idToken',
+                                  auth!.idToken!,
+                                );
+                              }
+
                               print('[ACCESS TOKEN] ${auth?.accessToken}');
                               print('[ID TOKEN] ${auth?.idToken}');
 
-                              state.initState();
+                              // state.initState();
                             } catch (e) {
                               print('\n\n[SIGNIN ERROR] $e \n\n');
                             }
@@ -307,6 +323,7 @@ class _BackupPageState extends State<BackupPage> {
 
                               prefs.remove('email');
                               prefs.remove('accessToken');
+                              prefs.remove('idToken');
                             } catch (e) {
                               print(e);
                             }
