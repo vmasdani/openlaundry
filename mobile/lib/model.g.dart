@@ -23,13 +23,14 @@ class CustomerAdapter extends TypeAdapter<Customer> {
       ..uuid = fields[255] as String?
       ..created = fields[254] as int?
       ..updated = fields[253] as int?
-      ..deleted = fields[252] as int?;
+      ..deleted = fields[252] as int?
+      ..id = fields[251] as int?;
   }
 
   @override
   void write(BinaryWriter writer, Customer obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -43,7 +44,9 @@ class CustomerAdapter extends TypeAdapter<Customer> {
       ..writeByte(253)
       ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deleted);
+      ..write(obj.deleted)
+      ..writeByte(251)
+      ..write(obj.id);
   }
 
   @override
@@ -87,13 +90,14 @@ class LaundryRecordAdapter extends TypeAdapter<LaundryRecord> {
       ..uuid = fields[255] as String?
       ..created = fields[254] as int?
       ..updated = fields[253] as int?
-      ..deleted = fields[252] as int?;
+      ..deleted = fields[252] as int?
+      ..id = fields[251] as int?;
   }
 
   @override
   void write(BinaryWriter writer, LaundryRecord obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.customerUuid)
       ..writeByte(1)
@@ -133,7 +137,9 @@ class LaundryRecordAdapter extends TypeAdapter<LaundryRecord> {
       ..writeByte(253)
       ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deleted);
+      ..write(obj.deleted)
+      ..writeByte(251)
+      ..write(obj.id);
   }
 
   @override
@@ -163,13 +169,14 @@ class LaundryDocumentAdapter extends TypeAdapter<LaundryDocument> {
       ..uuid = fields[255] as String?
       ..created = fields[254] as int?
       ..updated = fields[253] as int?
-      ..deleted = fields[252] as int?;
+      ..deleted = fields[252] as int?
+      ..id = fields[251] as int?;
   }
 
   @override
   void write(BinaryWriter writer, LaundryDocument obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -181,7 +188,9 @@ class LaundryDocumentAdapter extends TypeAdapter<LaundryDocument> {
       ..writeByte(253)
       ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deleted);
+      ..write(obj.deleted)
+      ..writeByte(251)
+      ..write(obj.id);
   }
 
   @override
@@ -212,13 +221,14 @@ class LaundryRecordDetailAdapter extends TypeAdapter<LaundryRecordDetail> {
       ..uuid = fields[255] as String?
       ..created = fields[254] as int?
       ..updated = fields[253] as int?
-      ..deleted = fields[252] as int?;
+      ..deleted = fields[252] as int?
+      ..id = fields[251] as int?;
   }
 
   @override
   void write(BinaryWriter writer, LaundryRecordDetail obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -232,7 +242,9 @@ class LaundryRecordDetailAdapter extends TypeAdapter<LaundryRecordDetail> {
       ..writeByte(253)
       ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deleted);
+      ..write(obj.deleted)
+      ..writeByte(251)
+      ..write(obj.id);
   }
 
   @override
@@ -263,13 +275,14 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..uuid = fields[255] as String?
       ..created = fields[254] as int?
       ..updated = fields[253] as int?
-      ..deleted = fields[252] as int?;
+      ..deleted = fields[252] as int?
+      ..id = fields[251] as int?;
   }
 
   @override
   void write(BinaryWriter writer, Expense obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -283,7 +296,9 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..writeByte(253)
       ..write(obj.updated)
       ..writeByte(252)
-      ..write(obj.deleted);
+      ..write(obj.deleted)
+      ..writeByte(251)
+      ..write(obj.id);
   }
 
   @override
@@ -360,6 +375,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..created = json['created'] as int?
   ..updated = json['updated'] as int?
   ..deleted = json['deleted'] as int?
+  ..id = json['id'] as int?
   ..name = json['name'] as String?
   ..phone = json['phone'] as String?
   ..address = json['address'] as String?;
@@ -369,6 +385,7 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'created': instance.created,
       'updated': instance.updated,
       'deleted': instance.deleted,
+      'id': instance.id,
       'name': instance.name,
       'phone': instance.phone,
       'address': instance.address,
@@ -380,6 +397,7 @@ LaundryRecord _$LaundryRecordFromJson(Map<String, dynamic> json) =>
       ..created = json['created'] as int?
       ..updated = json['updated'] as int?
       ..deleted = json['deleted'] as int?
+      ..id = json['id'] as int?
       ..customerUuid = json['customerUuid'] as String?
       ..laundryDocumentUuid = json['laundryDocumentUuid'] as String?
       ..weight = (json['weight'] as num?)?.toDouble()
@@ -403,6 +421,7 @@ Map<String, dynamic> _$LaundryRecordToJson(LaundryRecord instance) =>
       'created': instance.created,
       'updated': instance.updated,
       'deleted': instance.deleted,
+      'id': instance.id,
       'customerUuid': instance.customerUuid,
       'laundryDocumentUuid': instance.laundryDocumentUuid,
       'weight': instance.weight,
@@ -427,6 +446,7 @@ LaundryDocument _$LaundryDocumentFromJson(Map<String, dynamic> json) =>
       ..created = json['created'] as int?
       ..updated = json['updated'] as int?
       ..deleted = json['deleted'] as int?
+      ..id = json['id'] as int?
       ..name = json['name'] as String?
       ..date = json['date'] as int?;
 
@@ -436,6 +456,7 @@ Map<String, dynamic> _$LaundryDocumentToJson(LaundryDocument instance) =>
       'created': instance.created,
       'updated': instance.updated,
       'deleted': instance.deleted,
+      'id': instance.id,
       'name': instance.name,
       'date': instance.date,
     };
@@ -446,6 +467,7 @@ LaundryRecordDetail _$LaundryRecordDetailFromJson(Map<String, dynamic> json) =>
       ..created = json['created'] as int?
       ..updated = json['updated'] as int?
       ..deleted = json['deleted'] as int?
+      ..id = json['id'] as int?
       ..name = json['name'] as String?
       ..laundryRecordUuid = json['laundryRecordUuid'] as String?
       ..price = (json['price'] as num?)?.toDouble();
@@ -457,6 +479,7 @@ Map<String, dynamic> _$LaundryRecordDetailToJson(
       'created': instance.created,
       'updated': instance.updated,
       'deleted': instance.deleted,
+      'id': instance.id,
       'name': instance.name,
       'laundryRecordUuid': instance.laundryRecordUuid,
       'price': instance.price,
@@ -467,6 +490,7 @@ Expense _$ExpenseFromJson(Map<String, dynamic> json) => Expense()
   ..created = json['created'] as int?
   ..updated = json['updated'] as int?
   ..deleted = json['deleted'] as int?
+  ..id = json['id'] as int?
   ..name = json['name'] as String?
   ..date = json['date'] as int?
   ..amount = (json['amount'] as num?)?.toDouble();
@@ -476,6 +500,7 @@ Map<String, dynamic> _$ExpenseToJson(Expense instance) => <String, dynamic>{
       'created': instance.created,
       'updated': instance.updated,
       'deleted': instance.deleted,
+      'id': instance.id,
       'name': instance.name,
       'date': instance.date,
       'amount': instance.amount,
@@ -516,6 +541,7 @@ Map<String, dynamic> _$StorageToJson(Storage instance) => <String, dynamic>{
 
 StorageRecord _$StorageRecordFromJson(Map<String, dynamic> json) =>
     StorageRecord()
+      ..id = json['id'] as int?
       ..uuid = json['uuid'] as String?
       ..created = json['created'] as int?
       ..updated = json['updated'] as int?
@@ -524,6 +550,7 @@ StorageRecord _$StorageRecordFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$StorageRecordToJson(StorageRecord instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'uuid': instance.uuid,
       'created': instance.created,
       'updated': instance.updated,

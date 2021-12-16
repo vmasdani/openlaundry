@@ -17,6 +17,9 @@ class BaseModel {
 
   @HiveField(252)
   int? deleted;
+
+  @HiveField(251)
+  int? id;
 }
 
 @JsonSerializable()
@@ -194,6 +197,7 @@ class BackupTable<T extends BaseModel> {
 
   String? tableName;
   Future<Box<T>>? table;
+  T Function(Map<String, dynamic> json)? decoder;
 }
 
 @JsonSerializable()
@@ -213,6 +217,7 @@ class Storage extends HiveObject {
 class StorageRecord extends HiveObject {
   StorageRecord();
 
+  int? id;
   String? uuid;
   int? created;
   int? updated;

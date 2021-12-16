@@ -108,29 +108,34 @@ class _BackupPageState extends State<BackupPage> {
                                     BackupTable()
                                       ..tableName = laundryDocumentHiveTable
                                       ..table = Hive.openBox<LaundryDocument>(
-                                        laundryDocumentHiveTable,
-                                      ),
+                                          laundryDocumentHiveTable)
+                                      ..decoder = LaundryDocument.fromJson,
                                     BackupTable()
                                       ..tableName = laundryRecordsHiveTable
                                       ..table = Hive.openBox<LaundryRecord>(
                                         laundryRecordsHiveTable,
-                                      ),
+                                      )
+                                      ..decoder = LaundryRecord.fromJson,
                                     BackupTable()
                                       ..tableName =
                                           laundryRecordDetailsHiveTable
                                       ..table =
                                           Hive.openBox<LaundryRecordDetail>(
                                         laundryRecordDetailsHiveTable,
-                                      ),
+                                      )
+                                      ..decoder = LaundryRecordDetail.fromJson,
                                     BackupTable()
                                       ..tableName = customersHiveTable
                                       ..table = Hive.openBox<Customer>(
                                         customersHiveTable,
-                                      ),
+                                      )
+                                      ..decoder = Customer.fromJson,
                                   ].map(
                                     (t) async {
+                                      final tableUnwrapped = (await t.table);
+
                                       print(
-                                        'Record ${t.tableName}: ${(await t.table)?.values.length}',
+                                        'Record ${t.tableName}: ${(tableUnwrapped)?.values.length}',
                                       );
 
                                       try {
@@ -147,7 +152,7 @@ class _BackupPageState extends State<BackupPage> {
                                           body: jsonEncode(
                                             Storage()
                                               ..key = t.tableName
-                                              ..storageRecords = (await t.table)
+                                              ..storageRecords = tableUnwrapped
                                                       ?.values
                                                       .map(
                                                     (s) {
@@ -180,6 +185,43 @@ class _BackupPageState extends State<BackupPage> {
                                           '[result ${t.tableName}] ${res.statusCode}: from storage: ${storage.key}, length: ${storage.storageRecords?.length}',
                                         );
 
+                                        // Save each records by lookup each uuid
+                                        storage.storageRecords
+                                            ?.forEach((sr) async {
+                                          var i = (tableUnwrapped?.values
+                                              .toList()
+                                              .indexWhere(
+                                                (e) => e.uuid == sr.uuid,
+                                              ));
+
+                                          if (i != null && i >= 0) {
+                                            final decoded = t.decoder?.call(
+                                              jsonDecode(sr.value ?? '{}'),
+                                            );
+
+                                            if (decoded != null) {
+                                              await tableUnwrapped?.putAt(
+                                                i,
+                                                decoded,
+                                              );
+                                            }
+                                          } else {
+                                            final decoded = t.decoder?.call(
+                                              jsonDecode(
+                                                sr.value ?? '{}',
+                                              ),
+                                            );
+
+                                            if (decoded != null) {
+                                              (tableUnwrapped)?.add(
+                                                decoded,
+                                              );
+
+                                              await (decoded as HiveObject?)
+                                                  ?.save();
+                                            }
+                                          }
+                                        });
                                         return 'ok';
                                       } catch (e) {
                                         print('[sync ${t.tableName} error] $e');

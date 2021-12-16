@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:openlaundry/app_state.dart';
+import 'package:openlaundry/constants.dart';
 import 'package:openlaundry/google_sign_in_class.dart';
 import 'package:openlaundry/main_component.dart';
 import 'package:openlaundry/model.dart';
@@ -48,10 +49,23 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
-    final state = context.read<AppState>();
-
-    // state.initState();
     super.initState();
+
+    _init();
+  }
+
+  Future<void> _init() async {
+    // print(
+    //   'Laundry records: ${(await Hive.openBox(laundryRecordsHiveTable)).values.length}',
+    // );
+
+    // print(
+    //   'Laundry record details: ${(await Hive.openBox(laundryRecordDetailsHiveTable)).values.length}',
+    // );
+
+    // print(
+    //   'customers: ${(await Hive.openBox(customersHiveTable)).values.length}',
+    // );
   }
 
   @override
