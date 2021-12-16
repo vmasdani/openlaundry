@@ -50,6 +50,7 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
         actions: [
           TextButton(
             onPressed: () async {
+              _customer?.updated = DateTime.now().millisecondsSinceEpoch;
               await _customer?.save();
               Navigator.pop(context);
               widget.onSave?.call();

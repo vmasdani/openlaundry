@@ -511,6 +511,8 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                                               child: Container(
                                                 child: TextField(
                                                   onChanged: (v) {
+                                                    lD.updated = DateTime.now()
+                                                        .millisecondsSinceEpoch;
                                                     lD.name = v;
                                                   },
                                                   controller:
@@ -531,6 +533,8 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                                               child: Container(
                                                 child: TextField(
                                                   onChanged: (v) {
+                                                    lD.updated = DateTime.now()
+                                                        .millisecondsSinceEpoch;
                                                     lD.price =
                                                         double.tryParse(v) ??
                                                             lD.price;
