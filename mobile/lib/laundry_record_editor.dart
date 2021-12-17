@@ -605,11 +605,16 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                         onChanged: (v) {
                           if (v != null && v) {
                             setState(() {
+                              _laundryRecord?.updated =
+                                  DateTime.now().millisecondsSinceEpoch;
                               _laundryRecord?.isPaid = 1;
                             });
                           } else {
                             setState(() {
+                              _laundryRecord?.updated =
+                                  DateTime.now().millisecondsSinceEpoch;
                               _laundryRecord?.isPaid = 0;
+                              _laundryRecord?.paidValue = 0;
                             });
                           }
                         },
@@ -648,6 +653,8 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                                 controller: TextEditingController()
                                   ..text = '${_laundryRecord?.paidValue ?? 0}',
                                 onChanged: (v) {
+                                  _laundryRecord?.updated =
+                                      DateTime.now().millisecondsSinceEpoch;
                                   _laundryRecord?.paidValue =
                                       double.tryParse(v) ??
                                           _laundryRecord?.paidValue;

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:hive/hive.dart';
@@ -108,7 +110,9 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                             ))
                                 .values
                                 ?.firstWhereOrNull(
-                                  (l) => l?.uuid == widget?.uuid,
+                                  (l) =>
+                                      l?.uuid == widget?.uuid &&
+                                      l.deleted == null,
                                 );
 
                             final c = (await Hive.openBox<Customer>(
@@ -116,7 +120,9 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                             ))
                                 .values
                                 ?.firstWhereOrNull(
-                                  (c) => c?.uuid == l?.customerUuid,
+                                  (c) =>
+                                      c?.uuid == l?.customerUuid &&
+                                      c.deleted == null,
                                 );
 
                             try {
@@ -129,67 +135,215 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                             final connStatus = await _bluetooth.isConnected;
 
                             if (connStatus != null && connStatus) {
-                              _bluetooth.printCustom("Cinta Laundry", 3, 1);
+                              _bluetooth.printCustom("Cinta Laundry", 2, 1);
 
-                              _bluetooth.printCustom(
-                                  '${DateFormat.yMMMd().add_jms().format(
-                                        DateTime.now().toLocal(),
-                                      )} ${DateTime.now().timeZoneName}',
-                                  1,
-                                  1);
                               _bluetooth.printNewLine();
 
                               _bluetooth.printCustom(
-                                  "Customer: ${c?.name}", 1, 0);
-                              _bluetooth.printCustom(
-                                  "Address: ${c?.address}", 1, 0);
-                              _bluetooth.printCustom(
-                                  "Weight: ${l?.weight?.toStringAsFixed(2)} kg",
-                                  1,
-                                  0);
+                                '${DateFormat.yMMMd().add_jms().format(
+                                      DateTime.now().toLocal(),
+                                    )} ${DateTime.now().timeZoneName}',
+                                1,
+                                1,
+                              );
+
+                              _bluetooth.printNewLine();
+
+                              _bluetooth.printCustom('===============', 2, 1);
+
+                              _bluetooth.printNewLine();
 
                               _bluetooth.printCustom(
-                                  "Price: ${NumberFormat.decimalPattern()?.format(
-                                    l?.price ?? 0,
-                                  )}",
-                                  1,
-                                  0);
+                                'Customer: ${c?.name != null && c?.name != '' ? c?.name : '[No name]'}',
+                                1,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
 
                               _bluetooth.printCustom(
-                                  "Status: ${l?.isPaid == 1 ? 'PAID' : 'UNPAID'}",
-                                  1,
-                                  0);
+                                'Address: ${c?.address != null && c?.address != '' ? c?.address : '[No address]'}',
+                                1,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
+
+                              _bluetooth.printCustom(
+                                'Phone: ${c?.phone != null && c?.phone != '' ? c?.phone : '[No phone]'}',
+                                1,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
+
+                              _bluetooth.printCustom('---------------', 2, 1);
+
+                              _bluetooth.printNewLine();
+
+                              _bluetooth.printCustom(
+                                'Items',
+                                1,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
+
+                              final laundryDetails =
+                                  (await Hive.openBox<LaundryRecordDetail>(
+                                laundryRecordDetailsHiveTable,
+                              ))
+                                      .values
+                                      .where(
+                                        (lD) =>
+                                            lD.laundryRecordUuid == l?.uuid &&
+                                            lD.deleted == null,
+                                      );
+
+                              laundryDetails.forEachIndexed(
+                                (i, lD) {
+                                  // print(jsonEncode(lD));
+
+                                  _bluetooth.printCustom(
+                                    '${i + 1}. ${lD.name}: ${NumberFormat.decimalPattern().format(lD.price ?? 0)}',
+                                    1,
+                                    0,
+                                  );
+                                  _bluetooth.printNewLine();
+                                },
+                              );
+
+                              final totalPrice = laundryDetails.fold(
+                                0.0,
+                                (acc, lD) => (acc as double) + (lD.price ?? 0),
+                              );
+
+                              _bluetooth.printCustom(
+                                "Status: ${l?.isPaid == 1 ? 'PAID' : 'UNPAID'}",
+                                2,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
+
+                              final customerRecords =
+                                  (await Hive.openBox<LaundryRecord>(
+                                laundryRecordsHiveTable,
+                              ))
+                                      .values
+                                      .where(
+                                        (l) =>
+                                            l.customerUuid == c?.uuid &&
+                                            l.deleted == null,
+                                      );
+                              final totalCustomerRecordPrices =
+                                  (await Future.wait(
+                                customerRecords.map(
+                                  (l) async =>
+                                      (await Hive.openBox<LaundryRecordDetail>(
+                                    laundryRecordDetailsHiveTable,
+                                  ))
+                                          .values
+                                          .where(
+                                            (lD) =>
+                                                lD.laundryRecordUuid == l.uuid,
+                                          ),
+                                ),
+                              ))
+                                      .expand((lD) => lD)
+                                      .fold(
+                                        0.0,
+                                        (acc, lD) =>
+                                            (acc as double) + (lD.price ?? 0),
+                                      );
+
+                              final totalCustomerPaid = customerRecords.fold(
+                                0.0,
+                                (acc, l) =>
+                                    (acc as double) + (l?.paidValue ?? 0),
+                              );
+
+                              final customerBalance =
+                                  totalCustomerPaid - totalCustomerRecordPrices;
+
+                              _bluetooth.printCustom(
+                                'Total: ${NumberFormat.decimalPattern().format(
+                                  totalPrice,
+                                )}',
+                                3,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
 
                               if (l?.isPaid == 1) {
                                 _bluetooth.printCustom(
-                                    "Paid value: ${NumberFormat.decimalPattern()?.format(
-                                      l?.paidValue ?? 0,
-                                    )}",
-                                    1,
-                                    0);
+                                  'Paid: ${NumberFormat.decimalPattern().format(
+                                    l?.paidValue ?? 0,
+                                  )}',
+                                  3,
+                                  0,
+                                );
 
-                                if ((l?.paidValue ?? 0) > (l?.price ?? 0)) {
-                                  _bluetooth.printCustom(
-                                      "Deposit: ${NumberFormat.decimalPattern()?.format(
-                                        (l?.paidValue ?? 0) - (l?.price ?? 0),
-                                      )}",
-                                      1,
-                                      0);
-                                } else {
-                                  _bluetooth.printCustom(
-                                      "Change: ${NumberFormat.decimalPattern()?.format(
-                                        (l?.price ?? 0) - (l?.paidValue ?? 0),
-                                      )}",
-                                      1,
-                                      0);
-                                }
+                                _bluetooth.printNewLine();
                               }
 
+                              _bluetooth.printCustom(
+                                'Cst. Balance: ${NumberFormat.decimalPattern().format(
+                                  customerBalance,
+                                )}',
+                                3,
+                                0,
+                              );
+
+                              _bluetooth.printNewLine();
+                              _bluetooth.printNewLine();
                               _bluetooth.printNewLine();
 
-                              _bluetooth?.printCustom('DRY CLEAN + IRON', 1, 0);
+                              // _bluetooth.printCustom(
+                              //   "Price: ${NumberFormat.decimalPattern()?.format(
+                              //     l?.price ?? 0,
+                              //   )}",
+                              //   1,
+                              //   0,
+                              // );
 
-                              _bluetooth.printNewLine();
+                              // _bluetooth.printCustom(
+                              //   "Status: ${l?.isPaid == 1 ? 'PAID' : 'UNPAID'}",
+                              //   1,
+                              //   0,
+                              // );
+
+                              // if (l?.isPaid == 1) {
+                              //   _bluetooth.printCustom(
+                              //       "Paid value: ${NumberFormat.decimalPattern()?.format(
+                              //         l?.paidValue ?? 0,
+                              //       )}",
+                              //       1,
+                              //       0);
+
+                              //   if ((l?.paidValue ?? 0) > (l?.price ?? 0)) {
+                              //     _bluetooth.printCustom(
+                              //         "Deposit: ${NumberFormat.decimalPattern()?.format(
+                              //           (l?.paidValue ?? 0) - (l?.price ?? 0),
+                              //         )}",
+                              //         1,
+                              //         0);
+                              //   } else {
+                              //     _bluetooth.printCustom(
+                              //         "Change: ${NumberFormat.decimalPattern()?.format(
+                              //           (l?.price ?? 0) - (l?.paidValue ?? 0),
+                              //         )}",
+                              //         1,
+                              //         0);
+                              //   }
+                              // }
+
+                              // _bluetooth.printNewLine();
+
+                              // _bluetooth?.printCustom('DRY CLEAN + IRON', 1, 0);
+
+                              // _bluetooth.printNewLine();
                             }
 
                             await _bluetooth.disconnect();
