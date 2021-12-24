@@ -477,7 +477,8 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                                         lDs?.fold(
                                           0.0,
                                           (acc, lD) =>
-                                              (acc as double) + (lD.price ?? 0),
+                                              (acc as double) +
+                                              (lD.price ?? 0.0),
                                         ),
                                       ) ?? 0} ',
                                   style: TextStyle(
@@ -651,7 +652,8 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                               alignment: Alignment.centerRight,
                               child: TextField(
                                 controller: TextEditingController()
-                                  ..text = '${_laundryRecord?.paidValue ?? 0}',
+                                  ..text =
+                                      '${_laundryRecord?.paidValue ?? 0.0}',
                                 onChanged: (v) {
                                   _laundryRecord?.updated =
                                       DateTime.now().millisecondsSinceEpoch;

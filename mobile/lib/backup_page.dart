@@ -93,7 +93,20 @@ class _BackupPageState extends State<BackupPage> {
                           ? CircularProgressIndicator()
                           : ElevatedButton.icon(
                               onPressed: () async {
-                                void sync() async {}
+                                // Sync first time to avoid race
+                                await http.post(
+                                  Uri.parse(
+                                    '${dotenv.env['STORGE_URL']}/api/v1/sync',
+                                  ),
+                                  headers: {
+                                    'content-type': 'application/json',
+                                    'authorization': state.idToken ?? '',
+                                    'auth_type': 'google'
+                                  },
+                                  body: jsonEncode(
+                                    Storage()..key = "first-sync",
+                                  ),
+                                );
 
                                 print(
                                   '[id token] ${state.idToken}',
@@ -161,6 +174,7 @@ class _BackupPageState extends State<BackupPage> {
                                                       );
 
                                                       return StorageRecord()
+                                                        ..id = s.id
                                                         ..uuid = s.uuid
                                                         ..created = s.created
                                                         ..updated = s.updated
@@ -200,6 +214,11 @@ class _BackupPageState extends State<BackupPage> {
                                             );
 
                                             if (decoded != null) {
+                                              decoded.id = sr.id;
+                                              decoded.created = sr.created;
+                                              decoded.updated = sr.updated;
+                                              decoded.deleted = sr.deleted;
+
                                               await tableUnwrapped?.putAt(
                                                 i,
                                                 decoded,

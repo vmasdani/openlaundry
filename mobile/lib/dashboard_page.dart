@@ -429,7 +429,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                                   child: Text(
                                                     l?.isPaid == 1
                                                         ? 'Paid ${NumberFormat.decimalPattern().format(
-                                                            l?.paidValue ?? 0,
+                                                            l?.paidValue ?? 0.0,
                                                           )}'
                                                         : 'Unpaid',
                                                     style: TextStyle(

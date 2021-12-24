@@ -10,6 +10,7 @@ import 'package:openlaundry/customers_page.dart';
 import 'package:openlaundry/dashboard_page.dart';
 import 'package:openlaundry/document_editor.dart';
 import 'package:openlaundry/model.dart';
+import 'package:openlaundry/settingspage.dart';
 import 'package:provider/provider.dart';
 
 class MainComponent extends StatefulWidget {
@@ -37,14 +38,14 @@ class _MainComponentState extends State<MainComponent> {
                     return CustomersPage();
                   }
 
-                case 3:
+                case 2:
                   {
                     return BackupPage();
                   }
 
-                case 2:
+                case 3:
                   {
-                    return CalculatorPage();
+                    return SettingsPage();
                   }
 
                 default:
@@ -65,12 +66,12 @@ class _MainComponentState extends State<MainComponent> {
               label: 'Customers',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.calculate),
-              label: 'Calculator',
-            ),
-            BottomNavigationBarItem(
               icon: Icon(Icons.backup),
               label: 'Backup',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
             ),
           ],
           currentIndex: state.selectedPage,
@@ -89,12 +90,12 @@ class _MainComponentState extends State<MainComponent> {
 
               case 2:
                 state.setSelectedPage(2);
-                state.setTitle('Calculator');
+                state.setTitle('Backup');
                 return;
 
               case 3:
                 state.setSelectedPage(3);
-                state.setTitle('Backup');
+                state.setTitle('Settings');
                 return;
 
               default:

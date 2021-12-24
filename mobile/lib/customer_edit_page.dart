@@ -191,7 +191,8 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
 
                             final customerPaidValues = customerRecords?.fold(
                               0.0,
-                              (acc, l) => (acc as double) + (l.paidValue ?? 0),
+                              (acc, l) =>
+                                  (acc as double) + (l.paidValue ?? 0.0),
                             );
 
                             final customerRecordPrices = customerRecords
@@ -370,7 +371,7 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
                       //           (acc, l) =>
                       //               (acc as double) -
                       //               (l?.price ?? 0.0) +
-                      //               (l?.paidValue ?? 0.0),
+                      //               (l?.paidValue ?? 0.0.0),
                       //         );
 
                       //     return Text(
