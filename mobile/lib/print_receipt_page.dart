@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
@@ -7,6 +8,7 @@ import 'package:hive/hive.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:openlaundry/constants.dart';
+import 'package:openlaundry/helpers.dart';
 import 'package:openlaundry/model.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -23,6 +25,7 @@ class PrintReceiptPage extends StatefulWidget {
 }
 
 class _PrintReceiptPageState extends State<PrintReceiptPage> {
+  var _printCustomerBalance = true;
   BlueThermalPrinter _bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice>? _devices = [];
 
@@ -68,20 +71,35 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
               ),
             ),
             Container(
-              child: MaterialButton(
-                color: Colors.purple,
-                onPressed: () async {
-                  // printerManager?.startScan(
-                  //   Duration(seconds: 4),
-                  // );
-                },
-                child: Text(
-                  'Scan',
-                  style: TextStyle(
-                    color: Colors.white,
+              margin: EdgeInsets.only(top: 10, bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      child: Text('Print balance?'),
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.centerRight,
+                      child: Checkbox(
+                        value: _printCustomerBalance,
+                        onChanged: (v) {
+                          setState(() {
+                            if (v != null) {
+                              _printCustomerBalance = v;
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  )
+                ],
               ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 10, bottom: 10),
+              child: Divider(),
             ),
             ..._devices?.map((d) {
                   return Row(
@@ -107,6 +125,24 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                             'Print',
                           ),
                           onPressed: () async {
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text('Printing...'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+
                             final l = (await Hive.openBox<LaundryRecord>(
                               laundryRecordsHiveTable,
                             ))
@@ -150,11 +186,11 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                   1,
                                 );
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
                                 _bluetooth.printCustom('===============', 2, 1);
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
                                 _bluetooth.printCustom(
                                   'Customer: ${c?.name != null && c?.name != '' ? c?.name : '[No name]'}',
@@ -162,7 +198,7 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                   0,
                                 );
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
                                 _bluetooth.printCustom(
                                   'Address: ${c?.address != null && c?.address != '' ? c?.address : '[No address]'}',
@@ -170,38 +206,47 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                   0,
                                 );
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
-                                _bluetooth.printCustom(
-                                  'Phone: ${c?.phone != null && c?.phone != '' ? c?.phone : '[No phone]'}',
-                                  1,
-                                  0,
-                                );
+                                // _bluetooth.printCustom(
+                                //   'Phone: ${c?.phone != null && c?.phone != '' ? c?.phone : '[No phone]'}',
+                                //   1,
+                                //   0,
+                                // );
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
                                 _bluetooth.printCustom('---------------', 2, 1);
 
-                                _bluetooth.printNewLine();
+                                // _bluetooth.printNewLine();
 
                                 _bluetooth.printCustom(
-                                  'Items',
+                                  'Date: ${DateFormat.yMMMEd().format(DateTime.fromMillisecondsSinceEpoch(l?.date ?? 0).toUtc())}',
+                                  1,
+                                  0,
+                                );
+
+                                _bluetooth.printCustom(
+                                  'Weight: ${l?.weight ?? 0.0} kg',
                                   1,
                                   0,
                                 );
 
                                 _bluetooth.printNewLine();
 
+                                _bluetooth.printCustom(
+                                  'Items:',
+                                  1,
+                                  0,
+                                );
+
                                 final laundryDetails =
-                                    (await Hive.openBox<LaundryRecordDetail>(
-                                  laundryRecordDetailsHiveTable,
-                                ))
-                                        .values
+                                    (await fetchHiveListNotHidden<
+                                                LaundryRecordDetail>(
+                                            laundryRecordDetailsHiveTable))
                                         .where(
-                                          (lD) =>
-                                              lD.laundryRecordUuid == l?.uuid &&
-                                              lD.deleted == null,
-                                        );
+                                  (lD) => lD.laundryRecordUuid == l?.uuid,
+                                );
 
                                 laundryDetails.forEachIndexed(
                                   (i, lD) {
@@ -292,13 +337,15 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                   _bluetooth.printNewLine();
                                 }
 
-                                _bluetooth.printCustom(
-                                  'Cst. Balance: ${NumberFormat.decimalPattern().format(
-                                    customerBalance,
-                                  )}',
-                                  3,
-                                  0,
-                                );
+                                if (_printCustomerBalance) {
+                                  _bluetooth.printCustom(
+                                    'Cst. Balance: ${NumberFormat.decimalPattern().format(
+                                      customerBalance,
+                                    )}',
+                                    3,
+                                    0,
+                                  );
+                                }
 
                                 // _bluetooth.printNewLine();
 
@@ -321,8 +368,8 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                 //   1,
                                 // );
 
-                                // _bluetooth.printNewLine();
-                                // _bluetooth.printNewLine();
+                                _bluetooth.printNewLine();
+                                _bluetooth.printNewLine();
                                 // _bluetooth.printNewLine();
                               }
                             } catch (e) {
@@ -330,6 +377,8 @@ class _PrintReceiptPageState extends State<PrintReceiptPage> {
                                 '[Bluetooth printing error] $e',
                               );
                             } finally {
+                              Navigator.pop(context);
+
                               await _bluetooth.disconnect();
                             }
                           },

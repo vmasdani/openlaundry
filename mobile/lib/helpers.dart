@@ -1,3 +1,7 @@
+import 'package:flutter/cupertino.dart';
+import 'package:hive/hive.dart';
+import 'package:openlaundry/model.dart';
+
 final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 String getMonth(DateTime date) {
@@ -45,3 +49,37 @@ String makeDateString(DateTime date) {
 
   return '${date.year}-${m}-${d}';
 }
+
+Iterable<T> filterNotHidden<T extends BaseModel>(Iterable<T> list) =>
+    list.where(
+      (e) => e.deleted == null,
+    );
+
+Future<Iterable<T>> fetchHiveListNotHidden<T extends BaseModel>(
+        String tableName) async =>
+    (await Hive.openBox<T>(tableName)).values.where(
+          (e) => e.deleted == null,
+        );
+
+Widget hiveListNotHidden<T extends BaseModel>({
+  required BuildContext context,
+  required String tableName,
+  required Widget Function(Iterable<T> list) mapperWidget,
+  required Widget Function() waitWidget,
+}) =>
+    FutureBuilder(
+        future: Hive.openBox<T>(tableName),
+        builder: (
+          BuildContext context,
+          AsyncSnapshot<dynamic> snapshot,
+        ) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return mapperWidget(
+              filterNotHidden(
+                (snapshot.data as Box<T>).values,
+              ),
+            );
+          } else {
+            return waitWidget();
+          }
+        });

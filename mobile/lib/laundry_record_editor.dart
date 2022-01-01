@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:openlaundry/constants.dart';
 import 'package:openlaundry/generic_selector.dart';
+import 'package:openlaundry/helpers.dart';
 import 'package:openlaundry/model.dart';
 import 'package:collection/collection.dart';
 import 'package:openlaundry/print_receipt_page.dart';
@@ -446,142 +447,166 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
             //     },
             //   ),
             // ),
-            Container(
-              child: FutureBuilder(
-                future: (Hive.openBox<LaundryRecordDetail>(
-                  laundryRecordDetailsHiveTable,
-                )),
-                builder: (
-                  ctx,
-                  AsyncSnapshot<Box<LaundryRecordDetail>> snapshot,
-                ) {
-                  final lDs = snapshot.data?.values.where(
-                    (lD) =>
-                        lD.deleted == null &&
-                        lD.laundryRecordUuid == _laundryRecord?.uuid,
-                  );
-
-                  return Container(
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(
-                            bottom: 10,
-                          ),
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Total: ${NumberFormat.decimalPattern().format(
-                                        lDs?.fold(
-                                          0.0,
-                                          (acc, lD) =>
-                                              (acc as double) +
-                                              (lD.price ?? 0.0),
-                                        ),
-                                      ) ?? 0} ',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+            (hiveListNotHidden<LaundryRecordDetail>(
+              context: context,
+              tableName: laundryRecordDetailsHiveTable,
+              mapperWidget: (laundryRecordDetails) {
+                final lDs = laundryRecordDetails.where(
+                  (lD) => lD?.laundryRecordUuid == _laundryRecord?.uuid,
+                );
+                return Container(
+                  child: Column(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(
+                          bottom: 10,
+                        ),
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Total: ${NumberFormat.decimalPattern().format(
+                                      lDs?.fold(
+                                        0.0,
+                                        (acc, lD) =>
+                                            (acc as double) + (lD.price ?? 0.0),
+                                      ),
+                                    ) ?? 0} ',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Container(
-                                child: TextButton(
-                                  child: Text(
-                                    'Refresh',
+                            ),
+                            Container(
+                              child: TextButton(
+                                child: Text(
+                                  'Refresh',
+                                ),
+                                onPressed: () {
+                                  setState(() {});
+                                },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      ...(lDs
+                              ?.map(
+                                (lD) => Container(
+                                  alignment: Alignment.centerLeft,
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                              child: TextField(
+                                                onChanged: (v) {
+                                                  lD.updated = DateTime.now()
+                                                      .millisecondsSinceEpoch;
+                                                  lD.name = v;
+                                                },
+                                                controller:
+                                                    TextEditingController()
+                                                      ..text = lD.name ?? '',
+                                                decoration: InputDecoration(
+                                                  isDense: true,
+                                                  label: Text(
+                                                    'Name',
+                                                  ),
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Container(
+                                              child: TextField(
+                                                onChanged: (v) {
+                                                  lD.updated = DateTime.now()
+                                                      .millisecondsSinceEpoch;
+                                                  lD.price =
+                                                      double.tryParse(v) ??
+                                                          lD.price;
+                                                },
+                                                controller:
+                                                    TextEditingController()
+                                                      ..text = '${lD?.price}' ??
+                                                          '0.0',
+                                                decoration: InputDecoration(
+                                                  isDense: true,
+                                                  label: Text(
+                                                    'Price',
+                                                  ),
+                                                  border: OutlineInputBorder(),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                         Container(
+                                              child: IconButton(
+                                                color: Colors.red,
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                ),
+                                                onPressed: () async {
+                                                  final foundLaundryRecordDetail =
+                                                      (await fetchHiveListNotHidden<
+                                                                  LaundryRecordDetail>(
+                                                              laundryRecordDetailsHiveTable))
+                                                          .firstWhereOrNull(
+                                                    (lDx) =>
+                                                        lDx?.uuid == lD?.uuid,
+                                                  );
+
+                                                  if (foundLaundryRecordDetail !=
+                                                      null) {
+                                                    foundLaundryRecordDetail
+                                                        ?.deleted = DateTime
+                                                            .now()
+                                                        .millisecondsSinceEpoch;
+
+                                                    setState(() {});
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          
+                                        ],
+                                      ),
+
+                                      // Container(
+                                      //   child: Text(
+                                      //     lD?.uuid ?? '',
+                                      //   ),
+                                      // ),
+                                      Container(
+                                        child: Divider(),
+                                        margin: EdgeInsets.only(
+                                          top: 10,
+                                          bottom: 10,
+                                        ),
+                                      )
+                                    ],
                                   ),
-                                  onPressed: () {
-                                    setState(() {});
-                                  },
                                 ),
                               )
-                            ],
-                          ),
-                        ),
-                        ...(lDs
-                                ?.map(
-                                  (lD) => Container(
-                                    alignment: Alignment.centerLeft,
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Container(
-                                                child: TextField(
-                                                  onChanged: (v) {
-                                                    lD.updated = DateTime.now()
-                                                        .millisecondsSinceEpoch;
-                                                    lD.name = v;
-                                                  },
-                                                  controller:
-                                                      TextEditingController()
-                                                        ..text = lD.name ?? '',
-                                                  decoration: InputDecoration(
-                                                    isDense: true,
-                                                    label: Text(
-                                                      'Name',
-                                                    ),
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Container(
-                                                child: TextField(
-                                                  onChanged: (v) {
-                                                    lD.updated = DateTime.now()
-                                                        .millisecondsSinceEpoch;
-                                                    lD.price =
-                                                        double.tryParse(v) ??
-                                                            lD.price;
-                                                  },
-                                                  controller:
-                                                      TextEditingController()
-                                                        ..text =
-                                                            '${lD?.price}' ??
-                                                                '0.0',
-                                                  decoration: InputDecoration(
-                                                    isDense: true,
-                                                    label: Text(
-                                                      'Price',
-                                                    ),
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        // Container(
-                                        //   child: Text(
-                                        //     lD?.uuid ?? '',
-                                        //   ),
-                                        // ),
-                                        Container(
-                                          child: Divider(),
-                                          margin: EdgeInsets.only(
-                                            top: 10,
-                                            bottom: 10,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                )
-                                .toList() ??
-                            [])
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+                              .toList() ??
+                          [])
+                    ],
+                  ),
+                );
+              },
+              waitWidget: () {
+                return Container(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              },
+            )),
             Container(
               child: Divider(
                 color: Colors.grey,
@@ -719,6 +744,79 @@ class _LaundryRecordEditorState extends State<LaundryRecordEditor> {
                 ],
               ),
             ),
+            Container(
+              child: Divider(
+                color: Colors.black45,
+              ),
+            ),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            _laundryRecord?.deleted =
+                                DateTime.now().millisecondsSinceEpoch;
+                            _laundryRecord?.save();
+
+                            // Delete all record details
+                            (await Hive.openBox<LaundryRecordDetail>(
+                                    laundryRecordDetailsHiveTable))
+                                .values
+                                .where(
+                                  (lD) =>
+                                      lD.laundryRecordUuid ==
+                                      _laundryRecord?.uuid,
+                                )
+                                .forEach(
+                              (lD) {
+                                lD.deleted =
+                                    DateTime.now().millisecondsSinceEpoch;
+                                lD.save();
+                              },
+                            );
+
+                            Navigator?.pop(context);
+                            Navigator?.pop(context);
+
+                            widget.onSave?.call();
+                          },
+                          child: Text(
+                            'Yes',
+                            style: TextStyle(
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        MaterialButton(
+                          color: Colors.purple,
+                          onPressed: () async {},
+                          child: Text(
+                            'No',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                      title: Text(
+                        'Really delete?',
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Delete record',
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),

@@ -220,283 +220,305 @@ class _DashboardPageState extends State<DashboardPage> {
               Divider(
                 color: Colors.grey,
               ),
-              (FutureBuilder(
-                future: Hive.openBox<LaundryRecord>(laundryRecordsHiveTable),
-                builder: (ctx, AsyncSnapshot<Box<LaundryRecord>> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return Column(children: [
-                      Container(
-                        child: Row(
-                          children: [
-                            Expanded(
-                                child: Container(
-                              child: Text(
-                                'Showing ${snapshot.data?.values?.length} records',
-                              ),
-                            ))
-                          ],
-                        ),
-                      ),
-                      ...((snapshot.data)
-                              ?.values
-                              .where(
-                                (l) =>
-                                    (l.date ?? 0) >= _from &&
-                                    (l.date ?? 0) <= _to &&
-                                    (_filterCustomerUuid != null
-                                        ? l?.customerUuid == _filterCustomerUuid
-                                        : true),
-                              )
-                              .toList()
-                              .reversed
-                              .mapIndexed(
-                                (i, l) => GestureDetector(
-                                  onTap: () async {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => LaundryRecordEditor(
-                                          uuid: l.uuid,
-                                          onSave: () {
-                                            setState(() {});
-                                          },
+              (hiveListNotHidden<LaundryRecord>(
+                  context: context,
+                  tableName: laundryRecordsHiveTable,
+                  mapperWidget: (laundryRecords) {
+                    return Container(
+                      child: Column(
+                        children: [
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Container(
+                                  child: Text(
+                                    'Showing ${laundryRecords.length} records',
+                                  ),
+                                ))
+                              ],
+                            ),
+                          ),
+                          ...((laundryRecords)
+                                  .where(
+                                    (l) =>
+                                        (l.date ?? 0) >= _from &&
+                                        (l.date ?? 0) <= _to &&
+                                        (_filterCustomerUuid != null
+                                            ? l?.customerUuid ==
+                                                _filterCustomerUuid
+                                            : true),
+                                  )
+                                  .toList()
+                                  .reversed
+                                  .mapIndexed(
+                                    (i, l) => GestureDetector(
+                                      onTap: () async {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => LaundryRecordEditor(
+                                              uuid: l.uuid,
+                                              onSave: () {
+                                                setState(() {});
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.all(10),
+                                        margin: EdgeInsets.only(
+                                          top: 10,
+                                          bottom: 10,
                                         ),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.all(10),
-                                    margin: EdgeInsets.only(
-                                      top: 10,
-                                      bottom: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        boxShadow: [
-                                          BoxShadow(
-                                            blurRadius: 5,
-                                            // spreadRadius: 5,
-                                            offset: Offset(5, 5),
-                                            color: Colors.black26,
-                                          )
-                                        ]),
-                                    child: Column(
-                                      children: [
-                                        Row(
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            boxShadow: [
+                                              BoxShadow(
+                                                blurRadius: 5,
+                                                // spreadRadius: 5,
+                                                offset: Offset(5, 5),
+                                                color: Colors.black26,
+                                              )
+                                            ]),
+                                        child: Column(
                                           children: [
-                                            Expanded(
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        child:
+                                                            Text('${i + 1}. '),
+                                                      ),
+                                                      Container(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: Text(
+                                                          l.date != null
+                                                              ? DateFormat
+                                                                      .yMMMEd()
+                                                                  // .add_jms()
+                                                                  .format(
+                                                                  DateTime
+                                                                      .fromMillisecondsSinceEpoch(
+                                                                    l.date!,
+                                                                  ).toUtc(),
+                                                                )
+                                                              : 'No date',
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Container(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: FutureBuilder(
+                                                      future: (Hive.openBox<
+                                                              Customer>(
+                                                          customersHiveTable)),
+                                                      builder: (ctx,
+                                                          AsyncSnapshot<
+                                                                  Box<Customer>>
+                                                              customers) {
+                                                        return customers
+                                                                    .connectionState ==
+                                                                ConnectionState
+                                                                    .done
+                                                            ? (() {
+                                                                final c = (customers
+                                                                        .data)
+                                                                    ?.values
+                                                                    .firstWhereOrNull(
+                                                                      (c) =>
+                                                                          c.uuid ==
+                                                                          l.customerUuid,
+                                                                    );
+                                                                return Container(
+                                                                  child: Column(
+                                                                    children: [
+                                                                      Container(
+                                                                        child:
+                                                                            Text(
+                                                                          c?.name ??
+                                                                              'No customer',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Container(
+                                                                        child:
+                                                                            Text(
+                                                                          c?.address ??
+                                                                              'No address',
+                                                                          style:
+                                                                              TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    ],
+                                                                  ),
+                                                                );
+                                                              })()
+                                                            : Text(
+                                                                'Loading customer...',
+                                                              );
+                                                      },
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            Divider(),
+                                            Container(
                                               child: Row(
                                                 children: [
-                                                  Container(
-                                                    child: Text('${i + 1}. '),
-                                                  ),
-                                                  Container(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      l.date != null
-                                                          ? DateFormat.yMMMEd()
-                                                              // .add_jms()
-                                                              .format(
-                                                              DateTime
-                                                                  .fromMillisecondsSinceEpoch(
-                                                                l.date!,
-                                                              ).toUtc(),
-                                                            )
-                                                          : 'No date',
+                                                  Expanded(
+                                                    child: Container(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: FutureBuilder(
+                                                        future: (Hive.openBox<
+                                                                LaundryRecordDetail>(
+                                                            laundryRecordDetailsHiveTable)),
+                                                        builder: (
+                                                          context,
+                                                          AsyncSnapshot<
+                                                                  Box<LaundryRecordDetail>>
+                                                              snapshot,
+                                                        ) {
+                                                          final aggregatedPrice =
+                                                              snapshot.data
+                                                                      ?.values
+                                                                      .where(
+                                                                        (lD) =>
+                                                                            lD.deleted ==
+                                                                                null &&
+                                                                            lD.laundryRecordUuid ==
+                                                                                l.uuid,
+                                                                      )
+                                                                      .fold(
+                                                                        0.0,
+                                                                        (acc, lD) =>
+                                                                            ((acc as double) ??
+                                                                                0) +
+                                                                            (lD.price ??
+                                                                                0.0),
+                                                                      ) ??
+                                                                  0.0;
+
+                                                          return Text(
+                                                            '${l?.weight ?? 0.0} kg : ${NumberFormat.decimalPattern().format(
+                                                              aggregatedPrice,
+                                                            )}',
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
                                                     ),
-                                                  )
+                                                  ),
+                                                  Expanded(
+                                                    child: Container(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                        l?.isPaid == 1
+                                                            ? 'Paid ${NumberFormat.decimalPattern().format(
+                                                                l?.paidValue ??
+                                                                    0.0,
+                                                              )}'
+                                                            : 'Unpaid',
+                                                        style: TextStyle(
+                                                          color: l?.isPaid == 1
+                                                              ? Colors.green
+                                                              : Colors.red,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ),
-                                            Expanded(
-                                              child: Container(
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: FutureBuilder(
-                                                  future:
-                                                      (Hive.openBox<Customer>(
-                                                          customersHiveTable)),
-                                                  builder: (ctx,
-                                                      AsyncSnapshot<
-                                                              Box<Customer>>
-                                                          customers) {
-                                                    return customers
-                                                                .connectionState ==
-                                                            ConnectionState.done
-                                                        ? (() {
-                                                            final c = (customers
-                                                                    .data)
-                                                                ?.values
-                                                                .firstWhereOrNull(
-                                                                  (c) =>
-                                                                      c.uuid ==
-                                                                      l.customerUuid,
-                                                                );
-                                                            return Container(
-                                                              child: Column(
-                                                                children: [
-                                                                  Container(
-                                                                    child: Text(
-                                                                      c?.name ??
-                                                                          'No customer',
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                  Container(
-                                                                    child: Text(
-                                                                      c?.address ??
-                                                                          'No address',
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                ],
-                                                              ),
-                                                            );
-                                                          })()
-                                                        : Text(
-                                                            'Loading customer...',
-                                                          );
-                                                  },
-                                                ),
+                                            Divider(),
+                                            Container(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Container(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Text('Note'),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    child: Container(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                        l?.note != null &&
+                                                                l?.note != ""
+                                                            ? l?.note ?? ''
+                                                            : 'No note',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Divider(),
+                                            Divider(
+                                              color: Colors.grey,
+                                            ),
+                                            Container(
+                                              child: Text(
+                                                'Created ${l.created != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.created!)) : ''}, Updated ${l.updated != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.updated!)) : ''}',
+                                                style: TextStyle(fontSize: 11),
                                               ),
                                             )
                                           ],
                                         ),
-                                        Divider(),
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Container(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: FutureBuilder(
-                                                    future: (Hive.openBox<
-                                                            LaundryRecordDetail>(
-                                                        laundryRecordDetailsHiveTable)),
-                                                    builder: (
-                                                      context,
-                                                      AsyncSnapshot<
-                                                              Box<LaundryRecordDetail>>
-                                                          snapshot,
-                                                    ) {
-                                                      final aggregatedPrice =
-                                                          snapshot.data?.values
-                                                                  .where(
-                                                                    (lD) =>
-                                                                        lD.deleted ==
-                                                                            null &&
-                                                                        lD.laundryRecordUuid ==
-                                                                            l.uuid,
-                                                                  )
-                                                                  .fold(
-                                                                    0.0,
-                                                                    (acc, lD) =>
-                                                                        ((acc as double) ??
-                                                                            0) +
-                                                                        (lD.price ??
-                                                                            0.0),
-                                                                  ) ??
-                                                              0.0;
-
-                                                      return Text(
-                                                        '${l?.weight ?? 0.0} kg : ${NumberFormat.decimalPattern().format(
-                                                          aggregatedPrice,
-                                                        )}',
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Container(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                    l?.isPaid == 1
-                                                        ? 'Paid ${NumberFormat.decimalPattern().format(
-                                                            l?.paidValue ?? 0.0,
-                                                          )}'
-                                                        : 'Unpaid',
-                                                    style: TextStyle(
-                                                      color: l?.isPaid == 1
-                                                          ? Colors.green
-                                                          : Colors.red,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Divider(),
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Container(
-                                                  alignment:
-                                                      Alignment.centerLeft,
-                                                  child: Text('Note'),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Container(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  child: Text(
-                                                    l?.note != null &&
-                                                            l?.note != ""
-                                                        ? l?.note ?? ''
-                                                        : 'No note',
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        // Divider(),
-                                        Divider(
-                                          color: Colors.grey,
-                                        ),
-                                        Container(
-                                          child: Text(
-                                            'Created ${l.created != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.created!)) : ''}, Updated ${l.updated != null ? DateFormat.yMMMEd().add_jms().format(DateTime.fromMillisecondsSinceEpoch(l.updated!)) : ''}',
-                                            style: TextStyle(fontSize: 11),
-                                          ),
-                                        )
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              )
-                              .toList() ??
-                          [])
-                    ]);
-                  } else {
+                                  )
+                                  .toList() ??
+                              [])
+                        ],
+                      ),
+                    );
+                  },
+                  waitWidget: () {
                     return Container(
-                        child: Center(
-                      child: CircularProgressIndicator(),
-                    ));
-                  }
-                },
-              ))
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  },)),
+              // (FutureBuilder(
+              //   future: Hive.openBox<LaundryRecord>(laundryRecordsHiveTable),
+              //   builder: (ctx, AsyncSnapshot<Box<LaundryRecord>> snapshot) {
+              //     if (snapshot.connectionState == ConnectionState.done) {
+              //       return Column(children: []);
+              //     } else {
+              //       return Container();
+              //     }
+              //   },
+              // ))
             ],
           ),
         ),
